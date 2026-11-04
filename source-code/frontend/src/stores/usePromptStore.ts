@@ -13,6 +13,43 @@ import { mockPrompts, mockCategories } from '@/mocks/prompt'
 import type { CategoryIconName } from '@/mocks/prompt'
 
 /**
+ * 生成参数（决定这条配方能否被复现）
+ */
+export interface PromptParams {
+  model: string
+  sampler: string
+  scheduler: string
+  steps: number | null
+  cfg: number | null
+  seed: number | null
+  width: number | null
+  height: number | null
+  duration: number | null
+  assetType: string
+  sourceAssetId: string
+  /** 来源工作流（资产文件名） */
+  workflowName: string
+  /** 已导出的工作流 JSON 路径 */
+  workflowPath: string
+}
+
+export const EMPTY_PROMPT_PARAMS: PromptParams = {
+  model: '',
+  sampler: '',
+  scheduler: '',
+  steps: null,
+  cfg: null,
+  seed: null,
+  width: null,
+  height: null,
+  duration: null,
+  assetType: '',
+  sourceAssetId: '',
+  workflowName: '',
+  workflowPath: ''
+}
+
+/**
  * 提示词配方接口
  */
 export interface Prompt {
@@ -28,6 +65,7 @@ export interface Prompt {
   updatedAt: string
   isFavorite: boolean
   usageCount?: number
+  params: PromptParams
 }
 
 /**
@@ -58,6 +96,20 @@ interface PromptResponse {
   created_at: string
   updated_at: string
   is_favorite: boolean
+  usage_count?: number
+  model?: string
+  sampler?: string
+  scheduler?: string
+  steps?: number | null
+  cfg?: number | null
+  seed?: number | null
+  width?: number | null
+  height?: number | null
+  duration?: number | null
+  asset_type?: string
+  source_asset_id?: string
+  workflow_name?: string
+  workflow_path?: string
 }
 
 /**
@@ -84,6 +136,7 @@ export interface PromptInput {
   previewImage?: string
   remark?: string
   tags?: string[]
+  params?: PromptParams
 }
 
 /**
@@ -145,6 +198,7 @@ interface PromptStore {
   
   createCategory: (data: CategoryInput) => Promise<PromptCategory | null>
   updateCategory: (id: string, updates: Partial<CategoryInput>) => Promise<boolean>
+  moveCategory: (id: string, parentId: string | null, index: number) => Promise<boolean>
   deleteCategory: (id: string) => Promise<boolean>
   
   exportPrompts: (promptIds?: string[]) => Promise<{ success: boolean; data?: unknown; error?: string }>
@@ -198,7 +252,41 @@ const transformPrompt = (backendPrompt: PromptResponse): Prompt => ({
   tags: backendPrompt.tags || [],
   createdAt: backendPrompt.created_at,
   updatedAt: backendPrompt.updated_at,
-  isFavorite: backendPrompt.is_favorite || false
+  isFavorite: backendPrompt.is_favorite || false,
+  params: {
+    model: backendPrompt.model || '',
+    sampler: backendPrompt.sampler || '',
+    scheduler: backendPrompt.scheduler || '',
+    steps: backendPrompt.steps ?? null,
+    cfg: backendPrompt.cfg ?? null,
+    seed: backendPrompt.seed ?? null,
+    width: backendPrompt.width ?? null,
+    height: backendPrompt.height ?? null,
+    duration: backendPrompt.duration ?? null,
+    assetType: backendPrompt.asset_type || '',
+    sourceAssetId: backendPrompt.source_asset_id || '',
+    workflowName: backendPrompt.workflow_name || '',
+    workflowPath: backendPrompt.workflow_path || ''
+  }
+})
+
+/**
+ * 前端参数对象转后端 snake_case
+ */
+export const toBackendParams = (params: PromptParams) => ({
+  model: params.model,
+  sampler: params.sampler,
+  scheduler: params.scheduler,
+  steps: params.steps,
+  cfg: params.cfg,
+  seed: params.seed,
+  width: params.width,
+  height: params.height,
+  duration: params.duration,
+  asset_type: params.assetType,
+  source_asset_id: params.sourceAssetId,
+  workflow_name: params.workflowName,
+  workflow_path: params.workflowPath
 })
 
 /**
@@ -406,7 +494,8 @@ export const usePromptStore = create<PromptStore>((set, get) => ({
           tags: data.tags || [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          isFavorite: false
+          isFavorite: false,
+          params: data.params || { ...EMPTY_PROMPT_PARAMS }
         }
         
         set((state) => ({
@@ -425,7 +514,8 @@ export const usePromptStore = create<PromptStore>((set, get) => ({
         data.negativePrompt || '',
         data.previewImage || '',
         data.remark || '',
-        data.tags || []
+        data.tags || [],
+        toBackendParams(data.params || EMPTY_PROMPT_PARAMS)
       )
       
       if (!response.success || !response.prompt) {
@@ -492,7 +582,8 @@ export const usePromptStore = create<PromptStore>((set, get) => ({
         updates.negativePrompt,
         updates.previewImage,
         updates.remark,
-        updates.tags
+        updates.tags,
+        updates.params ? toBackendParams(updates.params) : undefined
       )
       
       if (!response.success) {
@@ -863,10 +954,16 @@ export const usePromptStore = create<PromptStore>((set, get) => ({
           isSystem: false
         }
         
-        set((state) => ({
-          categories: [...state.categories, newCategory],
-          isLoading: false
-        }))
+        set((state) => {
+          if (!newCategory.parentId) {
+            return { categories: [...state.categories, newCategory], isLoading: false }
+          }
+          const insert = (cats: PromptCategory[]): PromptCategory[] =>
+            cats.map((c) => c.id === newCategory.parentId
+              ? { ...c, children: [...(c.children ?? []), newCategory] }
+              : c.children ? { ...c, children: insert(c.children) } : c)
+          return { categories: insert(state.categories), isLoading: false }
+        })
         
         return newCategory
       }
@@ -888,10 +985,10 @@ export const usePromptStore = create<PromptStore>((set, get) => ({
       
       const newCategory = transformCategory(response.category as CategoryResponse)
       
-      set((state) => ({
-        categories: [...state.categories, newCategory],
-        isLoading: false
-      }))
+      // 从后端重建嵌套树，保证子分类挂到正确的父级 children 下
+      // （不能把带 parentId 的新分类平铺 append 到顶层数组，否则会显示在根级）
+      await get().loadCategories()
+      set({ isLoading: false })
       
       console.log('[usePromptStore] 分类创建成功:', newCategory.id)
       return newCategory
@@ -961,6 +1058,79 @@ export const usePromptStore = create<PromptStore>((set, get) => ({
       set({
         isLoading: false,
         error: `更新分类异常: ${error}`
+      })
+      return false
+    }
+  },
+
+  /**
+   * 移动分类（换父级和/或排序）
+   */
+  moveCategory: async (id, parentId, index) => {
+    console.log('[usePromptStore] 移动分类:', id, '-> parent=', parentId, 'index=', index)
+    
+    try {
+      set({ isLoading: true, error: null })
+      
+      if (isDevelopment()) {
+        console.log('[usePromptStore] 开发环境：使用 Mock 移动分类')
+        await new Promise(resolve => setTimeout(resolve, 300))
+        
+        const flatten = (cats: PromptCategory[], acc: PromptCategory[] = []): PromptCategory[] => {
+          for (const c of cats) {
+            acc.push({ ...c, children: undefined })
+            if (c.children) flatten(c.children, acc)
+          }
+          return acc
+        }
+        
+        const list = flatten(get().categories)
+        const moving = list.find((c) => c.id === id)
+        if (!moving || moving.isSystem) {
+          set({ isLoading: false, error: '系统分类不能移动' })
+          return false
+        }
+        
+        moving.parentId = parentId
+        const siblings = list
+          .filter((c) => (c.parentId ?? null) === parentId && c.id !== id)
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+        siblings.splice(Math.max(0, Math.min(index, siblings.length)), 0, moving)
+        const base = parentId === null ? 2 : 0
+        siblings.forEach((c, pos) => { c.sortOrder = base + pos })
+        
+        const roots = list.filter((c) => !c.parentId).sort((a, b) => a.sortOrder - b.sortOrder)
+        const tree = roots.map((r) => ({
+          ...r,
+          children: list.filter((c) => c.parentId === r.id).sort((a, b) => a.sortOrder - b.sortOrder)
+        }))
+        
+        set({ categories: tree, isLoading: false })
+        return true
+      }
+      
+      const response = await window.pywebview.api.category_move(id, parentId, index)
+      
+      if (!response.success) {
+        console.error('[usePromptStore] 移动分类失败:', response.error_message)
+        set({
+          isLoading: false,
+          error: response.error_message || '移动分类失败'
+        })
+        return false
+      }
+      
+      await get().loadCategories()
+      set({ isLoading: false })
+      
+      console.log('[usePromptStore] 分类移动成功')
+      return true
+      
+    } catch (error) {
+      console.error('[usePromptStore] 移动分类异常:', error)
+      set({
+        isLoading: false,
+        error: `移动分类异常: ${error}`
       })
       return false
     }

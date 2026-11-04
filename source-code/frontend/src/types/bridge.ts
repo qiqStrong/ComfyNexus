@@ -2,6 +2,9 @@
  * PyWebView Bridge API 类型定义
  */
 
+// 桥契约的载荷由后端 JSON 决定，尚未逐字段收口的地方先用 any 放行；补全后移除本行豁免。
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import type { ModuleConfigData } from './module'
 import type { 
   EnvironmentConfig,
@@ -45,6 +48,38 @@ import type {
 export interface AppInfo {
   version: string;
   env: string;
+}
+
+/**
+ * 提示词生成参数（决定这条配方能否被复现）
+ * 与后端 Prompt dataclass 的生成参数字段一一对应
+ */
+export interface PromptParamsPayload {
+  model?: string
+  sampler?: string
+  scheduler?: string
+  steps?: number | null
+  cfg?: number | null
+  seed?: number | null
+  width?: number | null
+  height?: number | null
+  duration?: number | null
+  asset_type?: string
+  source_asset_id?: string
+  /** 来源工作流（资产文件名） */
+  workflow_name?: string
+  /** 已导出的工作流 JSON 路径 */
+  workflow_path?: string
+}
+
+/**
+ * 分类改名/移动/删除会连带搬动磁盘目录，后端把换了位置的资产新路径回传，
+ * 前端就地更新，避免整库重载导致骨架屏和滚动位置丢失。
+ */
+export type GalleryMovedAssetPath = {
+  id: string
+  filePath: string
+  categoryId?: string | null
 }
 
 export interface PyWebViewAPI {
@@ -176,6 +211,7 @@ export interface PyWebViewAPI {
     settings: {
       version: string
       general: {
+        autoUpdate?: boolean  // 启动时检查更新开关
         comfyuiStartupAction?: 'workspace' | 'browser' | 'none'
         selectedBrowser?: string  // 浏览器exe路径，空字符串表示系统默认
       }
@@ -304,6 +340,16 @@ export interface PyWebViewAPI {
       draft: boolean
     }>
     message?: string
+  }>;
+
+  /** 读取随应用分发的 version.json，用于离线展示更新日志 */
+  get_local_release_info: () => Promise<{
+    success: boolean
+    version?: string
+    published_at?: string
+    release_notes?: string
+    file_size?: number
+    error?: string
   }>;
   
   get_last_commit_time: (owner: string, repo: string, branch?: string) => Promise<{
@@ -438,6 +484,7 @@ export interface PyWebViewAPI {
   }>;
   
   // 多配置管理 API
+  // 注意：后端只下发掩码（api_key_masked）与 has_api_key，不再回传明文 api_key
   ai_list_configs: () => Promise<{
     success: boolean
     configs?: Array<{
@@ -445,6 +492,8 @@ export interface PyWebViewAPI {
       alias: string
       provider: string
       model: string
+      api_key_masked?: string
+      has_api_key?: boolean
       is_default: boolean
       status: string
       last_tested_at?: string
@@ -461,7 +510,8 @@ export interface PyWebViewAPI {
       id: string
       alias: string
       provider: string
-      api_key: string
+      api_key_masked?: string
+      has_api_key?: boolean
       base_url?: string
       model: string
       models: string[]
@@ -506,6 +556,7 @@ export interface PyWebViewAPI {
     error_message?: string
   }>;
   
+  // config 可含 config_id：留空或传掩码时由后端用已保存的密钥补齐
   ai_test_connection: (provider: string, config: any) => Promise<{
     success: boolean
     message?: string
@@ -1023,7 +1074,9 @@ export interface PyWebViewAPI {
     negative_prompt?: string,
     preview_image?: string,
     remark?: string,
-    tags?: string[]
+    tags?: string[],
+    params?: PromptParamsPayload,
+    allow_empty_positive?: boolean
   ) => Promise<{
     success: boolean
     prompt?: {
@@ -1038,6 +1091,19 @@ export interface PyWebViewAPI {
       created_at: string
       updated_at: string
       is_favorite: boolean
+      model?: string
+      sampler?: string
+      scheduler?: string
+      steps?: number | null
+      cfg?: number | null
+      seed?: number | null
+      width?: number | null
+      height?: number | null
+      duration?: number | null
+      asset_type?: string
+      source_asset_id?: string
+      workflow_name?: string
+      workflow_path?: string
     }
     error_message?: string
   }>;
@@ -1050,7 +1116,8 @@ export interface PyWebViewAPI {
     negative_prompt?: string,
     preview_image?: string,
     remark?: string,
-    tags?: string[]
+    tags?: string[],
+    params?: PromptParamsPayload
   ) => Promise<{
     success: boolean
     error_message?: string
@@ -1161,6 +1228,15 @@ export interface PyWebViewAPI {
     name?: string,
     icon?: string,
     sort_order?: number
+  ) => Promise<{
+    success: boolean
+    error_message?: string
+  }>;
+
+  category_move: (
+    category_id: string,
+    parent_id?: string | null,
+    index?: number
   ) => Promise<{
     success: boolean
     error_message?: string
@@ -1310,7 +1386,7 @@ export interface PyWebViewAPI {
     error?: string
   }>;
 
-  delete_workflow_folder: (folderId: string) => Promise<{
+  delete_workflow_folder: (folderId: string, moveContentsToRoot?: boolean) => Promise<{
     success: boolean
     error?: string
   }>;
@@ -1565,6 +1641,21 @@ export interface PyWebViewAPI {
       sortOrder: number
       folderPath?: string
     }
+    asset_paths?: GalleryMovedAssetPath[]
+    error_message?: string
+  }>;
+
+  gallery_move_category: (categoryId: string, parentId?: string | null) => Promise<{
+    success: boolean
+    category?: {
+      id: string
+      name: string
+      isSystem: boolean
+      parentId: string | null
+      sortOrder: number
+      folderPath?: string
+    }
+    asset_paths?: GalleryMovedAssetPath[]
     error_message?: string
   }>;
 
@@ -1576,10 +1667,11 @@ export interface PyWebViewAPI {
     error_message?: string
   }>;
 
-  gallery_delete_category: (categoryId: string, cascade?: boolean) => Promise<{
+  gallery_delete_category: (categoryId: string, moveContentsToParent?: boolean) => Promise<{
     success: boolean
-    deleted_categories?: number
-    deleted_assets?: number
+    moved_children?: number
+    moved_assets?: number
+    asset_paths?: GalleryMovedAssetPath[]
     error_message?: string
   }>;
 
@@ -1733,7 +1825,7 @@ export interface PyWebViewAPI {
     error_message?: string
   }>;
 
-  gallery_export_to_prompt_library: (assetId: string) => Promise<{
+  gallery_export_to_prompt_library: (assetId: string, force?: boolean) => Promise<{
     success: boolean
     error_message?: string
     prompt?: any

@@ -2,27 +2,30 @@
  * 资产库页面
  */
 
-import React, { useEffect, useState, useCallback, useRef, Fragment } from 'react'
+import React, { useEffect, useMemo, useState, useCallback, useRef, Fragment } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Folder, ChevronRight } from 'lucide-react'
 import {
   AssetToolbar,
   AssetCategoryTree,
   AssetMasonryGrid,
+  AssetGridView,
+  AssetTheaterView,
   AssetContextMenu,
-  AssetDetailDialog,
   AssetBatchToolbar,
   AssetSettingsDialog,
   ScanProgressBar,
   AssetInfoPanel,
   AssetDragProvider,
   AssetDragLayer,
-  AssetSelectionBox,
-  AssetCategoryManageDialog
+  AssetSelectionBox
 } from '@/components/asset'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/ui/Button'
 import { useAssetStore } from '@/stores/useAssetStore'
+import type { CategoryDeleteRequest } from '@/components/asset/AssetCategoryTree'
+import { useChromeStore } from '@/stores/useChromeStore'
+import { useFullscreenStore } from '@/stores/useFullscreenStore'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { Asset } from '@/mocks/asset'
@@ -71,12 +74,17 @@ export default function AssetLibraryPage() {
     categories,
     createCategory,
     updateCategory,
+    moveCategory,
     deleteCategory,
-    incrementalScanLibrary
+    openLocation,
+    incrementalScanLibrary,
+    viewMode
   } = useAssetStore()
 
-  const [detailAsset, setDetailAsset] = useState<Asset | null>(null)
-  const [showDetail, setShowDetail] = useState(false)
+  // 影院模式：只记 id，资产数据始终从 store 派生，改名/评分才能实时反映在舞台上
+  const [theaterAssetId, setTheaterAssetId] = useState<string | null>(null)
+  const chromeHidden = useChromeStore((state) => state.hidden)
+  const showAllChrome = useChromeStore((state) => state.showAll)
   const [selectedInfoAsset, setSelectedInfoAsset] = useState<Asset | null>(null)
   // 保留上一次的 asset 数据，让滑出动画期间内容不消失
   const [lastInfoAsset, setLastInfoAsset] = useState<Asset | null>(null)
@@ -87,7 +95,7 @@ export default function AssetLibraryPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([])
   const [showSettings, setShowSettings] = useState(false)
-  const [showCategoryManage, setShowCategoryManage] = useState(false)
+  const [pendingCategoryDelete, setPendingCategoryDelete] = useState<CategoryDeleteRequest | null>(null)
 
   const [infoPanelPinned, setInfoPanelPinned] = useState(() => {
     return localStorage.getItem('asset-info-panel-pinned') === 'true'
@@ -117,11 +125,31 @@ export default function AssetLibraryPage() {
 
   const filteredAssets = getFilteredAssets()
 
+  const theaterAsset = useMemo(
+    () => (theaterAssetId ? assets.find((a) => a.id === theaterAssetId) ?? null : null),
+    [assets, theaterAssetId]
+  )
+
+  const resolveCategoryPath = useCallback(
+    (asset: Asset | null) =>
+      asset?.categoryId
+        ? getCategoryPath(asset.categoryId, categories).map((cat) => cat.name).join(' / ')
+        : '',
+    [categories]
+  )
+
   useEffect(() => {
     if (selectedInfoAsset) {
       setLastInfoAsset(selectedInfoAsset)
     }
   }, [selectedInfoAsset])
+
+  const infoAsset = selectedInfoAsset || lastInfoAsset
+  const infoCategoryPath = resolveCategoryPath(infoAsset)
+
+  // 进入影院模式时详情面板必须让位给舞台（固定态也一样收起），退出影院后按原状态回来
+  const infoPanelInFlow = infoPanelPinned && !theaterAsset
+  const infoPanelShown = !theaterAsset && (infoPanelPinned || !!selectedInfoAsset)
 
   const getIntersectingCardIds = useCallback((
     start: { x: number; y: number },
@@ -248,6 +276,45 @@ export default function AssetLibraryPage() {
     }
   }, [moveToCategory, toggleFavorite, t])
 
+  const notifyCategoryOp = useCallback((
+    result: { success: boolean; error?: string },
+    successKey: string,
+    failedKey: string
+  ) => {
+    if (result.success) {
+      toast.success(t(successKey))
+    } else {
+      toast.error(result.error || t(failedKey))
+    }
+    return result.success
+  }, [t])
+
+  const handleCreateCategory = useCallback(async (parentId: string | null, name: string) => {
+    notifyCategoryOp(await createCategory(name, parentId ?? undefined), 'asset.toast.createCategorySuccess', 'asset.toast.createCategoryFailed')
+  }, [createCategory, notifyCategoryOp])
+
+  const handleRenameCategory = useCallback(async (id: string, name: string) => {
+    notifyCategoryOp(await updateCategory(id, name), 'asset.toast.renameCategorySuccess', 'asset.toast.renameCategoryFailed')
+  }, [updateCategory, notifyCategoryOp])
+
+  const handleMoveCategory = useCallback(async (id: string, newParentId: string | null) => {
+    notifyCategoryOp(await moveCategory(id, newParentId), 'asset.toast.moveCategorySuccess', 'asset.toast.moveCategoryFailed')
+  }, [moveCategory, notifyCategoryOp])
+
+  const handleDeleteCategoryRequest = useCallback((request: CategoryDeleteRequest) => {
+    setPendingCategoryDelete(request)
+  }, [])
+
+  const handleConfirmDeleteCategory = useCallback(async () => {
+    if (!pendingCategoryDelete) return
+    const result = await deleteCategory(pendingCategoryDelete.id)
+    if (result.success && selectedCategoryId === pendingCategoryDelete.id) {
+      setSelectedCategoryId('all')
+    }
+    notifyCategoryOp(result, 'asset.toast.deleteCategorySuccess', 'asset.toast.deleteCategoryFailed')
+    setPendingCategoryDelete(null)
+  }, [pendingCategoryDelete, deleteCategory, selectedCategoryId, setSelectedCategoryId, notifyCategoryOp])
+
   // 单击延迟处理：避免悬浮 info 面板遮挡双击
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -261,15 +328,18 @@ export default function AssetLibraryPage() {
     }, 250)
   }, [isBatchMode])
 
+  const handleOpenTheater = useCallback((asset: Asset) => {
+    setTheaterAssetId(asset.id)
+  }, [])
+
   const handleImageDoubleClick = useCallback((asset: Asset) => {
     // 取消单击的延迟，防止 info 面板弹出
     if (clickTimerRef.current) {
       clearTimeout(clickTimerRef.current)
       clickTimerRef.current = null
     }
-    setDetailAsset(asset)
-    setShowDetail(true)
-  }, [])
+    handleOpenTheater(asset)
+  }, [handleOpenTheater])
 
   const handleContextMenu = useCallback((e: React.MouseEvent, asset: Asset) => {
     e.preventDefault()
@@ -283,9 +353,13 @@ export default function AssetLibraryPage() {
     setContextMenu({ asset: null, position: null })
   }, [])
 
-  const handleNavigate = useCallback((asset: Asset) => {
-    setDetailAsset(asset)
-  }, [])
+  const handleCloseTheater = useCallback(() => {
+    setTheaterAssetId(null)
+    // 窗体全屏时保持收起，其余情况把菜单/筛选/详情放回原位
+    if (!useFullscreenStore.getState().isFullscreen) {
+      showAllChrome()
+    }
+  }, [showAllChrome])
 
   const handleBatchDeleteClick = useCallback(() => {
     setPendingDeleteIds(selectedAssetIds)
@@ -308,7 +382,7 @@ export default function AssetLibraryPage() {
 
   const handleUpdateAssetInfo = useCallback(async (
     assetId: string,
-    data: { filename?: string; description?: string; tags?: string[] }
+    data: { filename?: string; description?: string; tags?: string[]; rating?: number }
   ) => {
     const result = await updateAssetInfo(assetId, data)
     if (result.success && result.asset) {
@@ -323,9 +397,10 @@ export default function AssetLibraryPage() {
     const success = await deleteAssets([assetId])
     if (success) {
       setSelectedInfoAsset(null)
+      if (assetId === theaterAssetId) setTheaterAssetId(null)
     }
     return success
-  }, [deleteAssets])
+  }, [deleteAssets, theaterAssetId])
 
   const getCardRefs = useCallback(() => {
     return gridRef.current?.getCardRefs() ?? new Map()
@@ -333,82 +408,130 @@ export default function AssetLibraryPage() {
 
   // 点击页面空白区域关闭悬浮 info 面板
   const handlePageClick = useCallback((e: React.MouseEvent) => {
+    if (theaterAsset) return
     if (!infoPanelPinned && selectedInfoAsset) {
       const target = e.target as HTMLElement
       // 不关闭：点击在 info 面板内、卡片上、或对话框上
       if (target.closest('[data-info-panel]') || target.closest('[data-asset-card]')) return
       setSelectedInfoAsset(null)
     }
-  }, [infoPanelPinned, selectedInfoAsset])
+  }, [infoPanelPinned, selectedInfoAsset, theaterAsset])
 
   return (
     <AssetDragProvider onDrop={handleDropToCategory}>
       <div className="flex h-full flex-col" onClick={handlePageClick}>
-        <AssetToolbar onOpenSettings={() => setShowSettings(true)} />
+        {!chromeHidden.filter && (
+          <AssetToolbar
+            onOpenSettings={() => setShowSettings(true)}
+            hideLayoutControls={!!theaterAsset}
+          />
+        )}
 
-        <main className="relative flex flex-1 overflow-hidden">
-          <AssetCategoryTree onOpenCategoryManage={() => setShowCategoryManage(true)} />
-
-          <div 
-            ref={scrollContainerRef}
-            className="flex-1 overflow-y-auto bg-background"
-            onMouseDown={handleSelectionMouseDown}
-          >
-            {selectedCategoryId && 
-              selectedCategoryId !== 'all' && 
-              selectedCategoryId !== 'favorites' && 
-              selectedCategoryId !== 'uncategorized' && (
-              <div className="flex items-center gap-1 border-b border-border-subtle bg-surface px-4 py-2">
-                {getCategoryPath(selectedCategoryId, categories).map((cat, index, path) => (
-                  <Fragment key={cat.id}>
-                    {index > 0 && (
-                      <ChevronRight className="size-4 text-muted-foreground" />
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedCategoryId(cat.id)}
-                      className={cn(
-                        'h-auto gap-1 px-2 py-1 text-sm',
-                        index === path.length - 1 && 'font-medium text-primary'
-                      )}
-                    >
-                      <Folder className="size-3.5" />
-                      {cat.name}
-                    </Button>
-                  </Fragment>
-                ))}
-              </div>
-            )}
-            <AssetMasonryGrid
-              ref={gridRef}
-              onImageClick={handleImageClick}
-              onImageDoubleClick={handleImageDoubleClick}
-              onImageContextMenu={handleContextMenu}
+        {/* 横向用 clip、纵向用 hidden：clip 不产生滚动容器，轨道列表定位时的滚动才不会顺带把
+            整行（含分类树）推出可视区；纵向仍需 hidden 保证这一层按可用高度收缩，不被内容撑高 */}
+        <main className="relative flex flex-1 overflow-y-hidden overflow-x-clip">
+          {!chromeHidden.nav && (
+            <AssetCategoryTree
+              onCreateCategory={handleCreateCategory}
+              onRenameCategory={handleRenameCategory}
+              onMoveCategory={handleMoveCategory}
+              onDeleteCategoryRequest={handleDeleteCategoryRequest}
             />
-          </div>
+          )}
 
-          <div 
-            className={cn(
-              "overflow-hidden transition-all duration-300 ease-in-out",
-              infoPanelPinned 
-                ? "w-[320px] shrink-0" 
-                : "absolute right-0 top-0 z-40 h-full w-[320px] shadow-lg",
-              !infoPanelPinned && (selectedInfoAsset 
-                ? "translate-x-0 opacity-100" 
-                : "pointer-events-none translate-x-full opacity-0")
-            )} 
-            data-info-panel
-          >
-            {(lastInfoAsset || infoPanelPinned) && (
-              <AssetInfoPanel
-                asset={selectedInfoAsset || lastInfoAsset}
-                onClose={handleCloseInfoPanel}
-                onUpdate={handleUpdateAssetInfo}
-                pinned={infoPanelPinned}
-                onTogglePin={handleToggleInfoPanelPin}
-                onDelete={handleDeleteAsset}
-              />
+          <div className="relative flex min-h-0 min-w-0 flex-1">
+            <div
+              ref={scrollContainerRef}
+              className={cn(
+                'min-w-0 flex-1 bg-background',
+                viewMode === 'grid' ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'
+              )}
+              onMouseDown={handleSelectionMouseDown}
+            >
+              {selectedCategoryId &&
+                selectedCategoryId !== 'all' &&
+                selectedCategoryId !== 'favorites' &&
+                selectedCategoryId !== 'uncategorized' && (
+                  <div className="flex shrink-0 items-center gap-1 border-b border-border-subtle bg-surface px-4 py-2">
+                    {getCategoryPath(selectedCategoryId, categories).map((cat, index, path) => (
+                      <Fragment key={cat.id}>
+                        {index > 0 && (
+                          <ChevronRight className="size-4 text-muted-foreground" />
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedCategoryId(cat.id)}
+                          className={cn(
+                            'h-auto gap-1 px-2 py-1 text-sm',
+                            index === path.length - 1 && 'font-medium text-primary'
+                          )}
+                        >
+                          <Folder className="size-3.5" />
+                          {cat.name}
+                        </Button>
+                      </Fragment>
+                    ))}
+                  </div>
+                )}
+              {viewMode === 'grid' ? (
+                <AssetGridView
+                  ref={gridRef}
+                  onImageClick={handleImageClick}
+                  onImageDoubleClick={handleImageDoubleClick}
+                  onView={handleOpenTheater}
+                  onImageContextMenu={handleContextMenu}
+                />
+              ) : (
+                <AssetMasonryGrid
+                  ref={gridRef}
+                  onImageClick={handleImageClick}
+                  onImageDoubleClick={handleImageDoubleClick}
+                  onView={handleOpenTheater}
+                  onImageContextMenu={handleContextMenu}
+                />
+              )}
+            </div>
+
+            <div
+              className={cn(
+                'overflow-hidden transition-all duration-300 ease-in-out',
+                infoPanelInFlow
+                  ? 'w-[320px] shrink-0'
+                  : 'absolute right-0 top-0 z-40 h-full w-[320px] shadow-lg',
+                infoPanelShown
+                  ? 'translate-x-0 opacity-100'
+                  : 'pointer-events-none translate-x-full opacity-0'
+              )}
+              data-info-panel
+            >
+              {(lastInfoAsset || infoPanelPinned) && (
+                <AssetInfoPanel
+                  asset={selectedInfoAsset || lastInfoAsset}
+                  onClose={handleCloseInfoPanel}
+                  onUpdate={handleUpdateAssetInfo}
+                  pinned={infoPanelPinned}
+                  onTogglePin={handleToggleInfoPanelPin}
+                  onDelete={handleDeleteAsset}
+                  categoryPath={infoCategoryPath}
+                  onOpenLocation={openLocation}
+                />
+              )}
+            </div>
+
+            {theaterAsset && (
+              <div className="absolute inset-0 z-30 flex flex-col bg-theater">
+                <AssetTheaterView
+                  asset={theaterAsset}
+                  assets={filteredAssets}
+                  categoryPath={resolveCategoryPath(theaterAsset)}
+                  onNavigate={(item) => setTheaterAssetId(item.id)}
+                  onClose={handleCloseTheater}
+                  onUpdate={handleUpdateAssetInfo}
+                  onDelete={handleDeleteAsset}
+                  onOpenLocation={openLocation}
+                />
+              </div>
             )}
           </div>
         </main>
@@ -417,14 +540,6 @@ export default function AssetLibraryPage() {
           asset={contextMenu.asset}
           position={contextMenu.position}
           onClose={handleCloseContextMenu}
-        />
-
-        <AssetDetailDialog
-          asset={detailAsset}
-          open={showDetail}
-          onOpenChange={setShowDetail}
-          assets={filteredAssets}
-          onNavigate={handleNavigate}
         />
 
         <AssetBatchToolbar onDeleteConfirm={handleBatchDeleteClick} />
@@ -436,14 +551,21 @@ export default function AssetLibraryPage() {
 
         <ScanProgressBar />
 
-        <AssetCategoryManageDialog
-          open={showCategoryManage}
-          onOpenChange={setShowCategoryManage}
-          categories={categories}
-          assets={assets}
-          onCreateCategory={createCategory}
-          onUpdateCategory={updateCategory}
-          onDeleteCategory={deleteCategory}
+        <ConfirmDialog
+          open={!!pendingCategoryDelete}
+          onOpenChange={(open) => { if (!open) setPendingCategoryDelete(null) }}
+          title={t('asset.category.deleteTitle')}
+          description={
+            pendingCategoryDelete && (pendingCategoryDelete.assetCount > 0 || pendingCategoryDelete.childCount > 0)
+              ? t('asset.category.deleteWithContent', {
+                  name: pendingCategoryDelete.name,
+                  assetCount: pendingCategoryDelete.assetCount,
+                  childCount: pendingCategoryDelete.childCount
+                })
+              : t('asset.category.deleteConfirm', { name: pendingCategoryDelete?.name || '' })
+          }
+          variant="destructive"
+          onConfirm={handleConfirmDeleteCategory}
         />
 
         <ConfirmDialog

@@ -399,6 +399,11 @@ def main():
         level="INFO"
     )
     
+    # 必须在创建任何窗口之前设置，否则任务栏会把窗口归到 python.exe 分组并沿用其图标
+    from backend.src.utils.window_icon import set_app_user_model_id
+
+    set_app_user_model_id()
+
     migrate_from_internal(logger)
     cleanup_old_updater(logger)
     
@@ -547,6 +552,12 @@ def main():
     
     # 获取前端构建目录
     dist_dir = base_path / "dist"
+    # PyInstaller onedir 模式会把资源放在 _internal/ 下；onefile 模式放在 _MEIPASS 下
+    if getattr(sys, 'frozen', False) and not dist_dir.exists():
+        _frozen_base = Path(sys._MEIPASS) if hasattr(sys, '_MEIPASS') else base_path / "_internal"
+        _alt_dist = _frozen_base / "dist"
+        if _alt_dist.exists():
+            dist_dir = _alt_dist
     index_html = dist_dir / "index.html"
     
     safe_print("=" * 60)
@@ -650,11 +661,10 @@ def main():
     # 从已读取的配置中解析窗口大小（避免重复读取配置文件）
     default_width, default_height = 1680, 1080
     if settings_data:
-        logger.info(f"[窗口大小] settings_data 内容: {settings_data}")
-        appearance_config = settings_data.get("appearance", {})
-        logger.info(f"[窗口大小] appearance 配置: {appearance_config}")
-        window_size = appearance_config.get("windowSize", "1680x1080")
-        logger.info(f"[窗口大小] 读取到的 windowSize: {window_size}")
+        window_size = settings_data.get("appearance", {}).get("windowSize", "1680x1080")
+        # 只打印真正用到的这一项：整份 settings_data 含 github.apiToken 等凭据，
+        # 打进启动日志等于把明文密钥落盘（日志默认保留 30 天）。
+        logger.debug(f"[窗口大小] windowSize={window_size}")
         try:
             width_str, height_str = window_size.split("x")
             default_width = int(width_str)
@@ -979,21 +989,25 @@ def main():
         try:
             import ctypes
             import time
-            
+
+            from backend.src.utils.window_bounds import find_window_by_title
+
             user32 = ctypes.windll.user32
-            
+
             # 重试机制：最多尝试 10 次，每次间隔 0.2 秒
             max_retries = 10
             retry_interval = 0.2
             hwnd = 0
-            
+
             for attempt in range(max_retries):
                 time.sleep(retry_interval)
-                hwnd = user32.FindWindowW(None, "ComfyNexus")
-                if hwnd and hwnd != 0:
+                # 只认本进程自己的窗口：FindWindowW 会先命中任务栏为应用创建的
+                # TabProxyWindow（explorer 进程），样式与位置就会静默打在它身上。
+                hwnd = find_window_by_title("ComfyNexus", max_retries=1, retry_interval=0) or 0
+                if hwnd:
                     break
-            
-            if hwnd and hwnd != 0:
+
+            if hwnd:
                 GWL_STYLE = -16
                 WS_POPUP = 0x80000000
                 WS_CAPTION = 0x00C00000
@@ -1094,20 +1108,25 @@ def main():
             _apply_winforms_monkey_patches()
         except Exception as e:
             logger.warning(f"[on_webview_ready] OpenFolderDialog monkey-patch 失败: {e}")
-        
+
+        # 修正任务栏/标题栏图标。
+        # pywebview 6.2.1 的 edgechromium 后端未实现 webview.start(icon=...)，
+        # 只有 winforms 后端会设置 Form.Icon，故这里手动写入窗口图标。
+        if _icon_arg:
+            try:
+                from backend.src.utils.window_icon import apply_icon_to_window_by_title
+
+                apply_icon_to_window_by_title('ComfyNexus', _icon_arg, retries=10, interval=0.1)
+            except Exception as e:
+                logger.warning(f"[on_webview_ready] 应用窗口图标失败: {e}")
+
         if floating_window_needs_show:
-            import ctypes
-            user32 = ctypes.windll.user32
-            
+            from backend.src.utils.window_bounds import find_window_by_title
+
             max_retries = 5
-            main_hwnd = 0
-            for attempt in range(max_retries):
-                main_hwnd = user32.FindWindowW(None, "ComfyNexus")
-                if main_hwnd and main_hwnd != 0:
-                    break
-                time.sleep(0.1)
-            
-            if main_hwnd and main_hwnd != 0:
+            main_hwnd = find_window_by_title("ComfyNexus", max_retries=max_retries, retry_interval=0.1) or 0
+
+            if main_hwnd:
                 floating_window_manager.set_main_hwnd(main_hwnd)
                 logger.debug(f"[on_webview_ready] 主窗口句柄: {main_hwnd}")
             else:
@@ -1184,6 +1203,12 @@ def main():
     # 窗口图标：未指定时 pywebview 会从 sys.executable 提取，
     # 开发模式下即为 python.exe 的图标，故显式传入项目自带的 .ico
     _icon_path = base_path / "icon.ico"
+    # PyInstaller onedir 模式图标在 _internal/ 下；onefile 模式在 _MEIPASS 下
+    if getattr(sys, 'frozen', False) and not _icon_path.exists():
+        _frozen_base = Path(sys._MEIPASS) if hasattr(sys, '_MEIPASS') else base_path / "_internal"
+        _alt_icon = _frozen_base / "icon.ico"
+        if _alt_icon.exists():
+            _icon_path = _alt_icon
     _icon_arg = str(_icon_path) if _icon_path.exists() else None
     if _icon_arg:
         logger.info(f"[主窗口] 使用窗口图标: {_icon_arg}")

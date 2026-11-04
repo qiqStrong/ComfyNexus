@@ -31,6 +31,11 @@
     "clearCache": "Clear Cache",
     "clearing": "Clearing...",
     "aiAnalyze": "AI Analyze",
+    "sidebar": {
+      "expand": "Expand sidebar",
+      "collapse": "Collapse sidebar",
+      "resetHint": "Drag to resize, double-click to reset"
+    },
     "copyAll": "Copy All",
     "export": "Export",
     "import": "Import",
@@ -360,7 +365,6 @@
     "env-manage": "Environment",
     "system-settings": "Settings",
     "about": "About",
-    "feedback": "Feedback",
     "env": "Environment",
     "process": "Process",
     "plugin": "Plugins",
@@ -1816,7 +1820,31 @@
     "fullPluginIntro": "Full Plugin Introduction",
     "noDescription": "No description",
     "stars": "Stars",
-    "installPlugin": "Install Plugin"
+    "installPlugin": "Install Plugin",
+    "marketplace": {
+      "loadFailed": "Failed to load plugin list",
+      "loadFailedRetry": "Failed to load plugin list, please retry later",
+      "enterGithubUrl": "Please enter GitHub URL",
+      "invalidGithubUrl": "Invalid GitHub URL, must start with https://github.com/",
+      "installFromGithub": "Install directly from GitHub URL",
+      "totalCount": "Total {count} plugins",
+      "pageInfo": "Page {current} / {total}",
+      "installed": "Installed",
+      "disabled": "Disabled",
+      "reinstall": "Reinstall",
+      "visitGithub": "Visit GitHub",
+      "sortDefault": "Default",
+      "sortStars": "Stars",
+      "sortUpdated": "Last Updated",
+      "cacheFresh": "Cached {time}, still valid",
+      "cacheStale": "Showing cached data from {time}, refreshing soon",
+      "refreshingInBackground": "Updating in background…",
+      "refreshFailedKeepCache": "Network failed, local cache kept",
+      "cacheJustNow": "just now",
+      "cacheMinutesAgo": "{count} min ago",
+      "cacheHoursAgo": "{count} h ago",
+      "cacheDaysAgo": "{count} d ago"
+    }
   },
   "pluginMarket": {
     "title": "Plugin Market",
@@ -2009,10 +2037,14 @@
       "favorite": "Favorite"
     },
     "detail": {
-      "reportTitle": "Workflow Analysis Report",
       "noDescription": "No description",
-      "defaultTag": "Default",
-      "load": "Load"
+      "selectHint": "Select a workflow to see its preview, info, node graph and plugin list here",
+      "graph": "Node Graph",
+      "noRawData": "Cannot read the raw data of this workflow"
+    },
+    "viewModes": {
+      "list": "Compact List",
+      "card": "Card Grid"
     },
     "sidebar": {
       "title": "Navigation",
@@ -2043,14 +2075,17 @@
       "confirmDisableGlobal": "Disabling global workflow directory will revert each environment to its own workflow directory and metadata. Global metadata file will be preserved. Confirm?",
       "confirmPathChange": "After changing the workflow directory, tags, favorites and other metadata will not be automatically migrated. Confirm?"
     },
-    "folderManage": {
-      "title": "Folder Management",
-      "parentFolder": "Parent Folder",
-      "folderName": "Folder Name",
-      "folderNamePlaceholder": "Enter folder name",
-      "topLevel": "Top Level",
-      "addRow": "Add Folder",
-      "save": "Save"
+    "folder": {
+      "namePlaceholder": "Enter folder name",
+      "actions": "Folder actions",
+      "newRoot": "New Folder",
+      "newChild": "New Subfolder",
+      "rename": "Rename",
+      "moveToRoot": "Move to Root",
+      "delete": "Delete",
+      "deleteTitle": "Delete Folder",
+      "deleteConfirm": "Delete folder \"{name}\"?",
+      "deleteWithWorkflows": "Folder \"{name}\" still contains workflows. Deleting it will move those workflows to the root (the workflows themselves are not deleted). Confirm delete?"
     },
     "node": {
       "noPorts": "No port connections"
@@ -2064,6 +2099,10 @@
       "exportFailed": "Failed to export workflow",
       "createFolderSuccess": "Folder created successfully",
       "createFolderFailed": "Failed to create folder",
+      "renameFolderFailed": "Failed to rename folder",
+      "folderMoveFailed": "Failed to move folder",
+      "deleteFolderSuccess": "Folder deleted",
+      "deleteFolderFailed": "Failed to delete folder",
       "favoriteSuccess": "{count} workflows favorited",
       "favoriteFailed": "Failed to favorite",
       "moveSuccess": "{count} workflows moved",
@@ -2161,11 +2200,51 @@
       "uploadPreview": "Upload 3:4 Preview",
       "uploading": "Uploading...",
       "cancel": "Cancel",
-      "save": "Save Changes"
+      "save": "Save Changes",
+      "paramsTitle": "Generation Parameters",
+      "paramsHint": "Optional. Required to reproduce the same image from this recipe.",
+      "modelLabel": "Model / Checkpoint",
+      "modelPlaceholder": "e.g. flux1-dev-fp8.safetensors",
+      "samplerLabel": "Sampler",
+      "samplerPlaceholder": "e.g. euler / dpmpp_2m",
+      "schedulerLabel": "Scheduler",
+      "schedulerPlaceholder": "e.g. karras / normal",
+      "stepsLabel": "Steps",
+      "cfgLabel": "CFG",
+      "seedLabel": "Seed",
+      "widthLabel": "Width",
+      "heightLabel": "Height",
+      "workflowLabel": "Source workflow",
+      "workflowPlaceholder": "e.g. product3view-2-side_00002_.png",
+      "workflowHint": "Records which workflow produced this recipe"
     },
     "card": {
       "noPrompts": "No prompts",
-      "noPreview": "No preview image"
+      "noPreview": "No preview image",
+      "workflowSource": "Source workflow"
+    },
+    "detail": {
+      "emptyTitle": "No prompt selected",
+      "emptyHint": "Pick one from the list on the left, or create a new one",
+      "positive": "Positive Prompt",
+      "negative": "Negative Prompt",
+      "noPositive": "This entry has no positive prompt yet",
+      "noNegative": "No negative prompt",
+      "params": "Generation Parameters",
+      "noParams": "No parameters recorded",
+      "copy": "Copy",
+      "copyParams": "Copy params",
+      "copied": "Copied",
+      "workflow": "Source Workflow",
+      "noWorkflow": "No workflow file recorded",
+      "remark": "Notes",
+      "duration": "Duration",
+      "updatedAt": "Updated",
+      "edit": "Edit",
+      "delete": "Delete",
+      "favorite": "Favorite",
+      "viewList": "List view",
+      "viewGrid": "Grid view"
     },
     "preview": {
       "positivePrompt": "Positive Prompt",
@@ -2173,15 +2252,15 @@
     },
     "category": {
       "title": "My Prompt Library",
-      "manage": "Manage Categories",
       "all": "All",
       "favorites": "Favorites",
-      "manageTitle": "Category Management",
-      "parentCategory": "Parent Category",
-      "categoryName": "Category Name",
-      "topLevel": "-- Top Level --",
-      "addRow": "Add Category Row",
-      "save": "Save & Apply"
+      "actions": "Category actions",
+      "newRoot": "New Category",
+      "newChild": "New Subcategory",
+      "newPrompt": "New Prompt Here",
+      "rename": "Rename",
+      "delete": "Delete Category",
+      "namePlaceholder": "Enter name, press Enter to confirm"
     },
     "toast": {
       "createSuccess": "Recipe added",
@@ -2205,6 +2284,7 @@
       "categoryAddFailed": "Failed to add category",
       "categoryUpdateSuccess": "Category updated",
       "categoryUpdateFailed": "Failed to update category",
+      "categoryMoveFailed": "Failed to move category",
       "categoryDeleteSuccess": "Category deleted",
       "categoryDeleteFailed": "Failed to delete category",
       "imageUploadSuccess": "Image uploaded",
@@ -2219,6 +2299,8 @@
       "deleteDescription": "Are you sure you want to delete recipe \"{name}\"? This action cannot be undone.",
       "batchDeleteTitle": "Confirm Batch Delete",
       "batchDeleteDescription": "Are you sure you want to delete {count} selected recipes? This action cannot be undone.",
+      "deleteCategoryTitle": "Confirm Delete Category",
+      "deleteCategoryDescription": "Are you sure you want to delete category \"{name}\"? Move its subcategories or prompts out first.",
       "confirmButton": "Delete"
     },
     "loading": "Loading..."
@@ -2523,6 +2605,10 @@
     "logLevelError": "Error messages like exception catches, operation failures, etc.",
     "generateAndCopyToken": "Click \"Generate token\" to generate and copy Token",
     "openGithubTokenPage": "Open GitHub Token creation page",
+    "autoUpdateOnStartup": {
+      "label": "Check for updates on startup",
+      "description": "When enabled, checks about 2 seconds after launch and then every 10 minutes; when disabled, never checks"
+    },
     "comfyuiStartupAction": {
       "label": "Action after ComfyUI starts",
       "workspace": "Open in Workspace",
@@ -3228,66 +3314,6 @@
       "saveConfig": "Save Configuration"
     }
   },
-  "feedback": {
-    "getting": "Getting...",
-    "notSelected": "Not selected",
-    "unknown": "Unknown",
-    "errors": {
-      "typeRequired": "Please select issue type",
-      "titleRequired": "Please enter issue title",
-      "titleTooLong": "Title cannot exceed 100 characters",
-      "descriptionRequired": "Please enter issue description",
-      "descriptionTooShort": "Description needs at least 10 characters",
-      "descriptionTooLong": "Description cannot exceed 2000 characters",
-      "stepsToReproduceRequired": "Please enter steps to reproduce"
-    },
-    "bugReport": "Bug Report",
-    "featureRequest": "Feature Request",
-    "issueTitle": "Issue Title",
-    "issueDescription": "Issue Description",
-    "issueType": "Issue Type",
-    "issueInfo": "Issue Info",
-    "reproduceSteps": "Steps to Reproduce",
-    "expectedBehavior": "Expected Behavior",
-    "actualBehavior": "Actual Behavior",
-    "featureDescription": "Feature Description",
-    "useCase": "Use Case",
-    "expectedEffect": "Expected Effect",
-    "alternativeSolution": "Alternative Solution",
-    "additionalInfo": "Additional Info",
-    "resetForm": "Reset Form",
-    "submitFeedback": "Submit Feedback",
-    "os": "Operating System",
-    "appVersion": "App Version",
-    "currentEnv": "Current Environment",
-    "tip": "Tip",
-    "tipContent": "After clicking \"Submit Feedback\", GitHub Issues page will open in your browser. You need to log in to your GitHub account to complete the submission. We have pre-filled the issue info and system info for you.",
-    "noGithubAccount": "If you don't have a GitHub account, you can go to",
-    "freeSignup": "to sign up for free.",
-    "usageQuestion": "Usage Question",
-    "other": "Other",
-    "systemInfoAuto": "System Info (Auto-collected)",
-    "pythonVersion": "Python Version",
-    "comfyuiPath": "ComfyUI Path",
-    "comfyuiVersion": "ComfyUI Version",
-    "pytorchVersion": "PyTorch Version",
-    "cudaVersion": "CUDA Version",
-    "uploadHint": "Tip: You can upload screenshots and files on the GitHub page",
-    "checkForm": "Please check if the form is filled correctly",
-    "githubOpened": "GitHub Issues page opened in browser",
-    "openBrowserFailed": "Failed to open browser, please visit GitHub manually",
-    "placeholder": {
-      "bugDescription": "Please describe the issue in detail...",
-      "featureDescription": "Please describe the feature you want to add...",
-      "generalDescription": "Please describe your issue or suggestion in detail..."
-    },
-    "types": {
-      "bug": "Bug Report",
-      "feature": "Feature Request",
-      "usage": "Usage Question",
-      "other": "Other"
-    }
-  },
   "workspace": {
     "saveFailed": "Save failed",
     "invalidImageUrl": "Invalid image URL, cannot download",
@@ -3819,7 +3845,7 @@
     "configUpdated": "Module configuration updated",
     "configReset": "Module configuration reset to default",
     "resetToDefault": "Reset to Default",
-    "configNote": "ℹ️ Module configuration takes effect immediately. Core modules (Home, System Settings, About, Feedback) cannot be disabled.",
+    "configNote": "ℹ️ Module configuration takes effect immediately. Core modules (Home, System Settings, About) cannot be disabled.",
     "confirmResetMessage": "Are you sure you want to reset all module configurations to default?"
   },
   "search": {
@@ -3832,6 +3858,31 @@
     "createTime": "Create Time"
   },
   "asset": {
+    "filter": {
+      "types": {
+        "image": "Images",
+        "video": "Videos"
+      },
+      "withWorkflow": "Has Workflow",
+      "date": "Time",
+      "dateOptions": {
+        "all": "Any Time",
+        "today": "Today",
+        "week": "Last 7 Days",
+        "month": "Last 30 Days",
+        "quarter": "Last 90 Days"
+      },
+      "modelAll": "All Models",
+      "modelSelected": "Models {count}",
+      "modelSelectedCount": "{selected} of {total} models selected",
+      "modelSearchPlaceholder": "Search model name",
+      "modelClear": "Clear selection",
+      "modelEmpty": "No matching models",
+      "sortAsc": "Ascending",
+      "sortDesc": "Descending",
+      "clear": "Clear Filters",
+      "resultCount": "Showing {shown} of {total}"
+    },
     "searchPlaceholder": "Search assets, models or prompts...",
     "sort": "Sort",
     "import": "Import",
@@ -3847,20 +3898,25 @@
       "extraLarge": "Extra Large"
     },
     "ratingFilter": "Rating Filter",
+    "sortOptions": {
+      "createdAt": "Created Time",
+      "name": "Name",
+      "size": "File Size",
+      "rating": "Rating"
+    },
     "rating": {
       "allRatings": "All Ratings",
       "unrated": "Unrated",
-      "1star": "1 Star",
-      "2stars": "2 Stars",
-      "3stars": "3 Stars",
-      "4stars": "4 Stars",
-      "5stars": "5 Stars"
+      "min1star": "1 star & up",
+      "min2stars": "2 stars & up",
+      "min3stars": "3 stars & up",
+      "min4stars": "4 stars & up",
+      "min5stars": "5 stars"
     },
     "importDialogTitle": "Select files to import",
     "batchManage": "Batch Manage",
     "exitBatch": "Exit Batch",
     "settings": "Settings",
-    "quickFilter": "Quick Filter",
     "settingsDialog": {
       "title": "Asset Library Settings",
       "description": "Configure the basic path and display options for the asset library",
@@ -3873,13 +3929,29 @@
       "saveSuccess": "Settings saved",
       "saveError": "Failed to save settings"
     },
-    "totalCount": "{count} assets total",
-    "selectedCount": "{count} selected",
     "thumbnailSizeValue": "{size}px",
-    "categoryTitle": "Categories",
-    "manageCategory": "Manage Categories",
     "noAssets": "No assets",
-    "showFolders": "Show Folders",
+    "showFolders": "Nested View",
+    "viewModes": {
+      "masonry": "Masonry",
+      "grid": "Grid Cards"
+    },
+    "theater": {
+      "enter": "View in theater mode",
+      "exit": "Exit theater mode",
+      "exitHint": "Press Esc to return to the list",
+      "noPrompt": "No prompt detected",
+      "filmstrip": "Filtered results",
+      "position": "{current} / {total}",
+      "chrome": {
+        "nav": "left menu",
+        "filter": "filter bar",
+        "detail": "details panel",
+        "show": "Show",
+        "hide": "Hide"
+      }
+    },
+    "showFoldersHint": "On: sub-folders appear as folder cards you click to enter, and the list shows only the assets directly in the current folder. Off: flatten and show every asset in the selected folder and all of its sub-folders.",
     "folder": {
       "open": "Open folder"
     },
@@ -3893,7 +3965,17 @@
       "favorites": "Favorites",
       "uncategorized": "Uncategorized",
       "localLibrary": "Local Library",
-      "referenceLibrary": "Reference Library"
+      "referenceLibrary": "Reference Library",
+      "namePlaceholder": "Category name",
+      "actions": "Category actions",
+      "newRoot": "New category",
+      "newChild": "New subcategory",
+      "rename": "Rename",
+      "moveToRoot": "Move to root",
+      "delete": "Delete",
+      "deleteTitle": "Delete category",
+      "deleteConfirm": "Delete category \"{name}\"?",
+      "deleteWithContent": "Category \"{name}\" still holds {assetCount} assets and {childCount} subcategories. Deleting moves them up one level (asset files are kept). Delete anyway?"
     },
     "categoryManage": {
       "title": "Manage Categories",
@@ -3914,7 +3996,7 @@
       "unfavorite": "Unfavorite",
       "openLocation": "Open Location",
       "export": "Export",
-      "exportToPromptLibrary": "Export to Prompt Library",
+      "importToPromptLibrary": "Import to Prompt Library",
       "exportToWorkflow": "Export to Workflow Library",
       "exportToLocal": "Export to Local (JSON)",
       "saveWorkflowAs": "Save Workflow",
@@ -3944,11 +4026,23 @@
       "favoriteSuccess": "Added to favorites",
       "exportSuccess": "Exported successfully",
       "exportFailed": "Export failed",
-      "exportToPromptLibrarySuccess": "Exported to Prompt Library"
+      "importToPromptLibrarySuccess": "Imported to Prompt Library",
+      "importToPromptLibraryFailed": "Failed to import to Prompt Library",
+      "moveSuccess": "Moved {count} assets",
+      "moveFailed": "Failed to move assets",
+      "favoriteFailed": "Failed to update favorite",
+      "createCategorySuccess": "Category created",
+      "renameCategorySuccess": "Category renamed",
+      "moveCategorySuccess": "Category moved",
+      "deleteCategorySuccess": "Category deleted",
+      "createCategoryFailed": "Failed to create category",
+      "renameCategoryFailed": "Failed to rename category",
+      "moveCategoryFailed": "Failed to move category",
+      "deleteCategoryFailed": "Failed to delete category"
     },
-    "noPromptDetected": "No prompt detected in workflow",
-    "noPromptDetectedDescription": "No positive or negative prompt was detected in this asset's workflow. If you want to import it into the Prompt Library, please fill in the prompts manually.",
-    "continueImport": "Got it",
+    "noPromptDetected": "No prompt detected",
+    "noPromptDetectedDescription": "No positive or negative prompt was detected in this asset. You can still import the preview image and generation parameters (model, sampler, steps, etc.) and fill in the prompt later.",
+    "continueImport": "Import anyway",
     "info": {
       "title": "Asset Info",
       "selectAsset": "Select an asset to view details",
@@ -3967,7 +4061,10 @@
       "tagPlaceholder": "Type tag and press Enter",
       "descriptionPlaceholder": "Enter description...",
       "pin": "Pin to sidebar",
-      "unpin": "Unpin"
+      "unpin": "Unpin",
+      "category": "Folder",
+      "path": "File Path",
+      "openLocation": "Open Containing Folder"
     },
     "confirm": {
       "deleteTitle": "Confirm Delete",

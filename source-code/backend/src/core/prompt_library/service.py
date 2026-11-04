@@ -18,6 +18,94 @@ from backend.src.utils.paths import get_prompt_data_dir, get_prompt_images_dir
 from backend.src.utils.logger import app_logger as logger
 
 
+# 生成参数字段：与资产库(Asset)一一对应，用于复现一次生成
+_INT_PARAM_FIELDS = ('steps', 'seed', 'width', 'height')
+_FLOAT_PARAM_FIELDS = ('cfg', 'duration')
+_STR_PARAM_FIELDS = (
+    'model',
+    'sampler',
+    'scheduler',
+    'asset_type',
+    'source_asset_id',
+    # 来源工作流：资产文件名 + 已导出的 JSON 路径（未导出为空）
+    'workflow_name',
+    'workflow_path',
+)
+
+# 合理的取值范围，防止脏数据写入
+_INT_PARAM_LIMITS = {
+    'steps': (1, 10000),
+    'seed': (0, 2 ** 63 - 1),
+    'width': (1, 32768),
+    'height': (1, 32768),
+}
+_FLOAT_PARAM_LIMITS = {
+    'cfg': (0.0, 100.0),
+    'duration': (0.0, 86400.0),
+}
+
+
+def _extract_generation_params(data: Dict[str, Any]) -> Dict[str, Any]:
+    """从请求数据里取出生成参数，只保留出现过的字段。
+
+    None 与空字符串视为"清空"，会被写成默认值（数值为 None，字符串为 ""）。
+    数值超出合理范围时直接丢弃，避免脏数据污染库。
+    """
+    params: Dict[str, Any] = {}
+
+    for field in _STR_PARAM_FIELDS:
+        if field in data:
+            value = data[field]
+            params[field] = (str(value).strip() if value is not None else "")
+
+    for field in _INT_PARAM_FIELDS:
+        if field not in data:
+            continue
+        value = data[field]
+        if value is None or value == "":
+            params[field] = None
+            continue
+        if isinstance(value, bool):
+            raise ValueError(f"参数 {field} 必须是数字")
+        if isinstance(value, int):
+            # 直接取整，避免 float 转换丢失 int64 精度（如随机种子）
+            number = value
+        else:
+            try:
+                number = int(value)
+            except (TypeError, ValueError):
+                try:
+                    number = int(float(value))
+                except (TypeError, ValueError):
+                    raise ValueError(f"参数 {field} 必须是数字")
+        low, high = _INT_PARAM_LIMITS[field]
+        params[field] = number if low <= number <= high else None
+
+    for field in _FLOAT_PARAM_FIELDS:
+        if field not in data:
+            continue
+        value = data[field]
+        if value is None or value == "":
+            params[field] = None
+            continue
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            raise ValueError(f"参数 {field} 必须是数字")
+        low, high = _FLOAT_PARAM_LIMITS[field]
+        params[field] = round(number, 4) if low <= number <= high else None
+
+    return params
+
+
+def _default_generation_params() -> Dict[str, Any]:
+    """生成参数字段的默认值，用于旧数据补齐"""
+    params: Dict[str, Any] = {field: "" for field in _STR_PARAM_FIELDS}
+    params.update({field: None for field in _INT_PARAM_FIELDS})
+    params.update({field: None for field in _FLOAT_PARAM_FIELDS})
+    return params
+
+
 class PromptLibraryService:
     """
     提示词库管理服务
@@ -228,12 +316,15 @@ class PromptLibraryService:
         with self._lock:
             return self._load_prompts()
     
-    def create_prompt(self, data: Dict[str, Any]) -> Dict:
+    def create_prompt(self, data: Dict[str, Any], allow_empty_positive: bool = False) -> Dict:
         """
         创建提示词
         
         Args:
             data: 提示词数据
+            allow_empty_positive: 允许正向提示词为空。
+                仅用于"从资产库导入"场景——资产可能没解析到提示词，
+                但模型/采样器等参数仍有保存价值。
             
         Returns:
             Dict: 新创建的提示词
@@ -251,7 +342,7 @@ class PromptLibraryService:
         if len(name) > 100:
             raise ValueError("提示词名称不能超过100个字符")
         
-        if not positive_prompt:
+        if not positive_prompt and not allow_empty_positive:
             raise ValueError("正向提示词不能为空")
         
         if len(positive_prompt) > 10000:
@@ -281,6 +372,8 @@ class PromptLibraryService:
             if len(tag) > 50:
                 raise ValueError("标签长度不能超过50个字符")
         
+        generation_params = _extract_generation_params(data)
+        
         with self._lock:
             prompts = self._load_prompts()
             
@@ -303,6 +396,8 @@ class PromptLibraryService:
                 'created_at': now,
                 'updated_at': now,
             }
+            new_prompt.update(_default_generation_params())
+            new_prompt.update(generation_params)
             
             prompts.append(new_prompt)
             self._save_prompts(prompts)
@@ -346,9 +441,9 @@ class PromptLibraryService:
                         prompt['name'] = name
                     
                     if 'positive_prompt' in data:
+                        # 更新允许正向提示词为空：从资产库导入的"参数配方"可能
+                        # 没有解析到提示词，用户只想改参数/标签时不应被拦住
                         positive_prompt = data['positive_prompt'].strip()
-                        if not positive_prompt:
-                            raise ValueError("正向提示词不能为空")
                         if len(positive_prompt) > 10000:
                             raise ValueError("正向提示词不能超过10000个字符")
                         prompt['positive_prompt'] = positive_prompt
@@ -388,6 +483,10 @@ class PromptLibraryService:
                             if len(tag) > 50:
                                 raise ValueError("标签长度不能超过50个字符")
                         prompt['tags'] = tags
+                    
+                    generation_params = _extract_generation_params(data)
+                    if generation_params:
+                        prompt.update(generation_params)
                     
                     prompt['updated_at'] = datetime.now().isoformat()
                     break
@@ -622,9 +721,11 @@ class PromptLibraryService:
             
             parent_id = data.get('parent_id')
             if parent_id:
-                parent_exists = any(c['id'] == parent_id for c in categories)
-                if not parent_exists:
+                parent = next((c for c in categories if c['id'] == parent_id), None)
+                if not parent:
                     raise ValueError("父分类不存在")
+                if parent.get('is_system', False) or parent.get('parent_id'):
+                    raise ValueError("只支持两级分类，父分类必须是用户自建的顶级分类")
             
             max_order = max(
                 (c['sort_order'] for c in categories if c.get('parent_id') == parent_id),
@@ -695,6 +796,67 @@ class PromptLibraryService:
             self._save_categories(categories)
             logger.info(f"更新分类成功: {category_id}")
             return True
+    
+    def move_category(self, category_id: str, new_parent_id: Optional[str], new_index: int) -> None:
+        """
+        移动分类：换父级和/或同级排序，移动后重排受影响分组的 sort_order
+        
+        Args:
+            category_id: 要移动的分类ID
+            new_parent_id: 目标父分类ID，None 表示移到顶级
+            new_index: 在目标同级列表（不含被移动项）中的插入位置
+            
+        Raises:
+            ValueError: 校验失败时抛出
+        """
+        virtual_ids = {'all', 'favorites'}
+        with self._lock:
+            categories = self._load_categories()
+            by_id = {c['id']: c for c in categories}
+            
+            if category_id not in by_id:
+                raise ValueError("分类不存在")
+            moving = by_id[category_id]
+            if moving.get('is_system', False) or category_id in virtual_ids:
+                raise ValueError("系统分类不能移动")
+            
+            if new_parent_id:
+                if new_parent_id == category_id:
+                    raise ValueError("不能移动到自身分类下")
+                parent = by_id.get(new_parent_id)
+                if not parent:
+                    raise ValueError("目标父分类不存在")
+                if parent.get('is_system', False) or new_parent_id in virtual_ids:
+                    raise ValueError("不能移动到系统分类下")
+                if parent.get('parent_id'):
+                    raise ValueError("只支持两级分类，不能移动到子分类下")
+                if any(c.get('parent_id') == category_id for c in categories):
+                    raise ValueError("该分类下存在子分类，不能移动到其他分类下")
+            
+            siblings = [
+                c for c in categories
+                if c.get('parent_id') == new_parent_id
+                and c['id'] != category_id
+                and not c.get('is_system', False)
+            ]
+            siblings.sort(key=lambda c: c.get('sort_order', 0))
+            index = max(0, min(new_index, len(siblings)))
+            siblings.insert(index, moving)
+            
+            base = 0
+            if new_parent_id is None:
+                system_orders = [
+                    c.get('sort_order', 0) for c in categories
+                    if c.get('parent_id') is None and c.get('is_system', False)
+                ]
+                base = (max(system_orders) + 1) if system_orders else 0
+            
+            for pos, c in enumerate(siblings):
+                c['parent_id'] = new_parent_id
+                c['sort_order'] = base + pos
+            
+            self._save_categories(categories)
+            logger.info(f"移动分类成功: {category_id} -> parent={new_parent_id}, index={index}")
     
     def delete_category(self, category_id: str) -> bool:
         """

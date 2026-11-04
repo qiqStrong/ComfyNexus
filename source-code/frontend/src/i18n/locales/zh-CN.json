@@ -31,6 +31,11 @@
     "clearCache": "清除缓存",
     "clearing": "清除中...",
     "aiAnalyze": "AI 分析",
+    "sidebar": {
+      "expand": "展开侧边栏",
+      "collapse": "折叠侧边栏",
+      "resetHint": "拖动调整宽度，双击恢复默认"
+    },
     "copyAll": "复制全部",
     "export": "导出",
     "import": "导入",
@@ -377,7 +382,6 @@
     "env-manage": "环境设置",
     "system-settings": "系统设置",
     "about": "关于",
-    "feedback": "问题反馈",
     "env": "环境管理",
     "process": "进程管理",
     "plugin": "插件管理",
@@ -1947,7 +1951,15 @@
       "visitGithub": "访问Github",
       "sortDefault": "默认",
       "sortStars": "星标数",
-      "sortUpdated": "最近更新"
+      "sortUpdated": "最近更新",
+      "cacheFresh": "列表缓存于 {time}，已在有效期内",
+      "cacheStale": "正在展示 {time}的缓存，稍后自动更新",
+      "refreshingInBackground": "后台更新中…",
+      "refreshFailedKeepCache": "网络获取失败，已保留本地缓存",
+      "cacheJustNow": "刚刚",
+      "cacheMinutesAgo": "{count} 分钟前",
+      "cacheHoursAgo": "{count} 小时前",
+      "cacheDaysAgo": "{count} 天前"
     }
   },
   "pluginMarket": {
@@ -2127,10 +2139,14 @@
       "favorite": "收藏"
     },
     "detail": {
-      "reportTitle": "工作流分析报告",
       "noDescription": "暂无描述",
-      "defaultTag": "默认标签",
-      "load": "加载"
+      "selectHint": "选中一个工作流，这里显示它的预览、信息、节点图和插件清单",
+      "graph": "节点图",
+      "noRawData": "无法读取该工作流的原始数据"
+    },
+    "viewModes": {
+      "list": "紧凑列表",
+      "card": "卡片网格"
     },
     "sidebar": {
       "title": "目录导航",
@@ -2161,14 +2177,17 @@
       "confirmDisableGlobal": "关闭全局工作流目录后，各环境将回退到各自的工作流目录和元数据。全局元数据文件将保留不删除。确认关闭？",
       "confirmPathChange": "修改工作流目录后，旧目录中的标签、收藏等元数据不会自动迁移。确认修改？"
     },
-    "folderManage": {
-      "title": "文件夹管理",
-      "parentFolder": "父级文件夹",
-      "folderName": "文件夹名称",
-      "folderNamePlaceholder": "输入文件夹名称",
-      "topLevel": "顶级目录",
-      "addRow": "添加文件夹",
-      "save": "保存"
+    "folder": {
+      "namePlaceholder": "输入文件夹名称",
+      "actions": "文件夹操作",
+      "newRoot": "新建文件夹",
+      "newChild": "新建子文件夹",
+      "rename": "重命名",
+      "moveToRoot": "移到根目录",
+      "delete": "删除",
+      "deleteTitle": "删除文件夹",
+      "deleteConfirm": "确定要删除文件夹「{name}」吗？",
+      "deleteWithWorkflows": "文件夹「{name}」内还有工作流。删除后其中的工作流会被移动到根目录（不会删除工作流本身）。确认删除？"
     },
     "node": {
       "noPorts": "无端口连接"
@@ -2192,6 +2211,10 @@
       "exportFailed": "导出工作流失败",
       "createFolderSuccess": "文件夹创建成功",
       "createFolderFailed": "创建文件夹失败",
+      "renameFolderFailed": "重命名文件夹失败",
+      "folderMoveFailed": "移动文件夹失败",
+      "deleteFolderSuccess": "文件夹已删除",
+      "deleteFolderFailed": "删除文件夹失败",
       "favoriteSuccess": "已收藏 {count} 个工作流",
       "favoriteFailed": "收藏失败",
       "moveSuccess": "已移动 {count} 个工作流",
@@ -2278,11 +2301,51 @@
       "uploadPreview": "上传 3:4 预览图",
       "uploading": "上传中...",
       "cancel": "取消",
-      "save": "保存更改"
+      "save": "保存更改",
+      "paramsTitle": "生成参数",
+      "paramsHint": "选填。填了才能用这条配方复现同一张图。",
+      "modelLabel": "模型 / Checkpoint",
+      "modelPlaceholder": "如 flux1-dev-fp8.safetensors",
+      "samplerLabel": "采样器",
+      "samplerPlaceholder": "如 euler / dpmpp_2m",
+      "schedulerLabel": "调度器",
+      "schedulerPlaceholder": "如 karras / normal",
+      "stepsLabel": "步数",
+      "cfgLabel": "CFG",
+      "seedLabel": "种子",
+      "widthLabel": "宽度",
+      "heightLabel": "高度",
+      "workflowLabel": "来源工作流",
+      "workflowPlaceholder": "例如 product3view-2-side_00002_.png",
+      "workflowHint": "记录这条配方由哪个工作流产出，方便回溯"
     },
     "card": {
       "noPrompts": "暂无提示词",
-      "noPreview": "暂无预览图"
+      "noPreview": "暂无预览图",
+      "workflowSource": "来源工作流"
+    },
+    "detail": {
+      "emptyTitle": "未选择提示词",
+      "emptyHint": "从左侧列表选择一条，或直接新建",
+      "positive": "正向提示词",
+      "negative": "反向提示词",
+      "noPositive": "这条记录还没有正向提示词",
+      "noNegative": "未设置反向提示词",
+      "params": "生成参数",
+      "noParams": "暂未记录生成参数",
+      "copy": "复制",
+      "copyParams": "复制参数",
+      "copied": "已复制",
+      "workflow": "来源工作流",
+      "noWorkflow": "未记录工作流文件",
+      "remark": "备注",
+      "duration": "时长",
+      "updatedAt": "更新于",
+      "edit": "编辑",
+      "delete": "删除",
+      "favorite": "收藏",
+      "viewList": "列表视图",
+      "viewGrid": "网格视图"
     },
     "preview": {
       "positivePrompt": "正向提示词",
@@ -2290,15 +2353,15 @@
     },
     "category": {
       "title": "我的提示词库",
-      "manage": "管理分类目录",
       "all": "全部",
       "favorites": "收藏",
-      "manageTitle": "分类目录管理",
-      "parentCategory": "父级分类",
-      "categoryName": "分类名称",
-      "topLevel": "-- 顶级分类 --",
-      "addRow": "新增分类行",
-      "save": "保存并应用"
+      "actions": "分类操作",
+      "newRoot": "新建分类",
+      "newChild": "新建子分类",
+      "newPrompt": "在此新建提示词",
+      "rename": "重命名",
+      "delete": "删除分类",
+      "namePlaceholder": "输入分类名称，回车确认"
     },
     "toast": {
       "createSuccess": "配方已添加",
@@ -2323,6 +2386,7 @@
       "categoryAddFailed": "添加分类失败",
       "categoryUpdateSuccess": "分类已更新",
       "categoryUpdateFailed": "更新分类失败",
+      "categoryMoveFailed": "移动分类失败",
       "categoryDeleteSuccess": "分类已删除",
       "categoryDeleteFailed": "删除分类失败",
       "imageUploadSuccess": "图片上传成功",
@@ -2337,6 +2401,8 @@
       "deleteDescription": "确定要删除配方「{name}」吗？此操作无法撤销。",
       "batchDeleteTitle": "确认批量删除",
       "batchDeleteDescription": "确定要删除选中的 {count} 个配方吗？此操作无法撤销。",
+      "deleteCategoryTitle": "确认删除分类",
+      "deleteCategoryDescription": "确定要删除分类「{name}」吗？分类下若有子分类或提示词需先移出。",
       "confirmButton": "删除"
     },
     "loading": "加载中..."
@@ -2641,6 +2707,10 @@
     "logLevelError": "错误信息，如异常捕获、操作失败等",
     "generateAndCopyToken": "点击 \"Generate token\" 生成并复制 Token",
     "openGithubTokenPage": "打开 GitHub Token 创建页面",
+    "autoUpdateOnStartup": {
+      "label": "启动时检查更新",
+      "description": "开启后启动约 2 秒检查一次，之后每 10 分钟检查一次；关闭则完全不检查"
+    },
     "comfyuiStartupAction": {
       "label": "ComfyUI 启动后操作",
       "workspace": "在工作台打开",
@@ -3792,66 +3862,6 @@
       "saveConfig": "保存配置"
     }
   },
-  "feedback": {
-    "getting": "获取中...",
-    "notSelected": "未选择",
-    "unknown": "未知",
-    "errors": {
-      "typeRequired": "请选择问题类型",
-      "titleRequired": "请输入问题标题",
-      "titleTooLong": "标题不能超过 100 个字符",
-      "descriptionRequired": "请输入问题描述",
-      "descriptionTooShort": "描述至少需要 10 个字符",
-      "descriptionTooLong": "描述不能超过 2000 个字符",
-      "stepsToReproduceRequired": "请输入复现步骤"
-    },
-    "bugReport": "Bug 报告",
-    "featureRequest": "功能建议",
-    "issueTitle": "问题标题",
-    "issueDescription": "问题描述",
-    "issueType": "问题类型",
-    "issueInfo": "问题信息",
-    "reproduceSteps": "复现步骤",
-    "expectedBehavior": "预期行为",
-    "actualBehavior": "实际行为",
-    "featureDescription": "功能描述",
-    "useCase": "使用场景",
-    "expectedEffect": "预期效果",
-    "alternativeSolution": "替代方案",
-    "additionalInfo": "附加信息",
-    "resetForm": "重置表单",
-    "submitFeedback": "提交反馈",
-    "os": "操作系统",
-    "appVersion": "应用版本",
-    "currentEnv": "当前环境",
-    "tip": "提示",
-    "tipContent": "点击\"提交反馈\"后，将在浏览器中打开 GitHub Issues 页面。您需要登录 GitHub 账号才能完成提交。我们已为您预填充了问题信息和系统信息。",
-    "noGithubAccount": "如果您没有 GitHub 账号，可以前往",
-    "freeSignup": "免费注册。",
-    "usageQuestion": "使用问题",
-    "other": "其他",
-    "systemInfoAuto": "系统信息 (自动收集)",
-    "pythonVersion": "Python 版本",
-    "comfyuiPath": "ComfyUI 路径",
-    "comfyuiVersion": "ComfyUI 版本",
-    "pytorchVersion": "PyTorch 版本",
-    "cudaVersion": "CUDA 版本",
-    "uploadHint": "提示：您可以在 GitHub 页面上传截图和文件",
-    "checkForm": "请检查表单填写是否正确",
-    "githubOpened": "已在浏览器中打开 GitHub Issues 页面",
-    "openBrowserFailed": "打开浏览器失败，请手动访问 GitHub",
-    "placeholder": {
-      "bugDescription": "请详细描述遇到的问题...",
-      "featureDescription": "请描述您希望添加的功能...",
-      "generalDescription": "请详细描述您的问题或建议..."
-    },
-    "types": {
-      "bug": "Bug 报告",
-      "feature": "功能建议",
-      "usage": "使用问题",
-      "other": "其他"
-    }
-  },
   "workspace": {
     "saveFailed": "保存失败",
     "invalidImageUrl": "图片地址无效，无法下载",
@@ -4391,7 +4401,7 @@
     "configUpdated": "模块配置已更新",
     "configReset": "模块配置已重置为默认值",
     "resetToDefault": "重置为默认",
-    "configNote": "ℹ️ 模块配置实时生效。核心模块（首页、系统设置、关于、问题反馈）无法禁用。",
+    "configNote": "ℹ️ 模块配置实时生效。核心模块（首页、系统设置、关于）无法禁用。",
     "confirmResetMessage": "确定要重置所有模块配置为默认值吗？"
   },
   "search": {
@@ -4416,11 +4426,30 @@
       "getScanStatusException": "获取扫描状态异常",
       "simulatingScan": "模拟扫描中..."
     },
-    "filterTag": {
-      "all": "全部",
-      "image": "图片",
-      "video": "视频",
-      "hasWorkflow": "含工作流"
+    "filter": {
+      "types": {
+        "image": "图片",
+        "video": "视频"
+      },
+      "withWorkflow": "含工作流",
+      "date": "时间",
+      "dateOptions": {
+        "all": "全部时间",
+        "today": "今天",
+        "week": "近 7 天",
+        "month": "近 30 天",
+        "quarter": "近 90 天"
+      },
+      "modelAll": "全部模型",
+      "modelSelected": "模型 {count}",
+      "modelSelectedCount": "已选 {selected} / {total} 个模型",
+      "modelSearchPlaceholder": "搜索模型名",
+      "modelClear": "清空选择",
+      "modelEmpty": "没有匹配的模型",
+      "sortAsc": "升序",
+      "sortDesc": "降序",
+      "clear": "清除筛选",
+      "resultCount": "显示 {shown} / 共 {total} 个"
     },
     "searchPlaceholder": "搜索资源、模型或提示词...",
     "sort": "排序",
@@ -4437,20 +4466,25 @@
       "extraLarge": "超大图"
     },
     "ratingFilter": "星级筛选",
+    "sortOptions": {
+      "createdAt": "创建时间",
+      "name": "名称",
+      "size": "文件大小",
+      "rating": "星级"
+    },
     "rating": {
       "allRatings": "全部星级",
       "unrated": "未评分",
-      "1star": "1 星",
-      "2stars": "2 星",
-      "3stars": "3 星",
-      "4stars": "4 星",
-      "5stars": "5 星"
+      "min1star": "1 星及以上",
+      "min2stars": "2 星及以上",
+      "min3stars": "3 星及以上",
+      "min4stars": "4 星及以上",
+      "min5stars": "5 星"
     },
     "importDialogTitle": "选择要导入的文件",
     "batchManage": "批量管理",
     "exitBatch": "退出批量",
     "settings": "设置",
-    "quickFilter": "快速筛选",
     "settingsDialog": {
       "title": "资产库设置",
       "description": "配置资产库的基本路径和显示选项",
@@ -4484,13 +4518,29 @@
       "nsfwAutoBlurDisabled": "NSFW 自动模糊已关闭",
       "nsfwAutoBlurToggleError": "设置 NSFW 自动模糊失败"
     },
-    "totalCount": "共 {count} 个资源",
-    "selectedCount": "已选 {count} 个",
     "thumbnailSizeValue": "{size}px",
-    "categoryTitle": "分类",
-    "manageCategory": "管理分类目录",
     "noAssets": "暂无资源",
-    "showFolders": "显示目录",
+    "showFolders": "分层浏览",
+    "viewModes": {
+      "masonry": "瀑布流",
+      "grid": "网格卡片"
+    },
+    "theater": {
+      "enter": "影院模式查看",
+      "exit": "退出影院模式",
+      "exitHint": "按 Esc 返回列表",
+      "noPrompt": "未解析到提示词",
+      "filmstrip": "筛选结果",
+      "position": "{current} / {total}",
+      "chrome": {
+        "nav": "左侧菜单",
+        "filter": "筛选区",
+        "detail": "详情栏",
+        "show": "显示",
+        "hide": "隐藏"
+      }
+    },
+    "showFoldersHint": "开启：子目录以文件夹卡片呈现，需点击进入，列表只显示当前目录直属的资产。关闭：平铺展示所选目录及其所有子目录的全部资产。",
     "folder": {
       "open": "打开目录"
     },
@@ -4504,7 +4554,17 @@
       "favorites": "收藏",
       "uncategorized": "未分类",
       "localLibrary": "本地生成库",
-      "referenceLibrary": "参考资产库"
+      "referenceLibrary": "参考资产库",
+      "namePlaceholder": "输入分类名称",
+      "actions": "分类操作",
+      "newRoot": "新建分类",
+      "newChild": "新建子分类",
+      "rename": "重命名",
+      "moveToRoot": "移到根目录",
+      "delete": "删除",
+      "deleteTitle": "删除分类",
+      "deleteConfirm": "确定要删除分类「{name}」吗？",
+      "deleteWithContent": "分类「{name}」下还有 {assetCount} 个资源、{childCount} 个子分类。删除后它们会跟着目录一起上浮到上一级（不会删除资源文件本身）。确认删除？"
     },
     "categoryManage": {
       "title": "管理分类",
@@ -4525,7 +4585,7 @@
       "unfavorite": "取消收藏",
       "openLocation": "打开所在位置",
       "export": "导出",
-      "exportToPromptLibrary": "导出到提示词库",
+      "importToPromptLibrary": "转入提示词库",
       "exportToWorkflow": "导出到工作流库",
       "exportToLocal": "导出到本地 (JSON)",
       "saveWorkflowAs": "保存工作流",
@@ -4555,11 +4615,23 @@
       "favoriteSuccess": "已添加到收藏",
       "exportSuccess": "导出成功",
       "exportFailed": "导出失败",
-      "exportToPromptLibrarySuccess": "已导出到提示词库"
+      "importToPromptLibrarySuccess": "已转入提示词库",
+      "importToPromptLibraryFailed": "转入提示词库失败",
+      "moveSuccess": "已移动 {count} 个资源",
+      "moveFailed": "移动资源失败",
+      "favoriteFailed": "收藏操作失败",
+      "createCategorySuccess": "分类已创建",
+      "renameCategorySuccess": "分类已重命名",
+      "moveCategorySuccess": "分类已移动",
+      "deleteCategorySuccess": "分类已删除",
+      "createCategoryFailed": "创建分类失败",
+      "renameCategoryFailed": "重命名分类失败",
+      "moveCategoryFailed": "移动分类失败",
+      "deleteCategoryFailed": "删除分类失败"
     },
-    "noPromptDetected": "工作流未检索到提示词",
-    "noPromptDetectedDescription": "该资产的工作流未识别到正向/反向提示词，如继续导入到提示词库，请手动填写提示词。",
-    "continueImport": "知道了",
+    "noPromptDetected": "未解析到提示词",
+    "noPromptDetectedDescription": "该资产未识别到正向/反向提示词。仍可导入预览图和生成参数（模型、采样器、步数等），提示词稍后可在提示词库中补充。",
+    "continueImport": "仍要导入",
     "info": {
       "title": "资产信息",
       "selectAsset": "选择一个资产查看详情",
@@ -4578,7 +4650,10 @@
       "tagPlaceholder": "输入标签后按回车",
       "descriptionPlaceholder": "输入备注...",
       "pin": "固定到侧边",
-      "unpin": "取消固定"
+      "unpin": "取消固定",
+      "category": "所在目录",
+      "path": "文件路径",
+      "openLocation": "打开所在目录"
     },
     "confirm": {
       "deleteTitle": "确认删除",

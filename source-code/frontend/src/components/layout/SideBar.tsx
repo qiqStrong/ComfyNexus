@@ -27,7 +27,7 @@ import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifi
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 
 const FIXED_MODULE_IDS = ['home', 'workspace', 'terminal']
-const FOOTER_MODULE_IDS = ['env-manage', 'system-settings', 'about', 'feedback']
+const FOOTER_MODULE_IDS = ['env-manage', 'system-settings', 'about']
 
 function SortableMenuItem({ 
   module, 
@@ -413,7 +413,7 @@ export function SideBar() {
                   <button
                     type="button"
                     onClick={() => {
-                      window.open('https://github.com/Allen-xxa/ComfyNexus', '_blank', 'noopener,noreferrer')
+                      window.open('https://github.com/qiqStrong/ComfyNexus', '_blank', 'noopener,noreferrer')
                       setGithubPopoverOpen(false)
                     }}
                     className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm hover:bg-surface-active"
@@ -424,7 +424,7 @@ export function SideBar() {
                   <button
                     type="button"
                     onClick={() => {
-                      navigator.clipboard.writeText('https://github.com/Allen-xxa/ComfyNexus')
+                      navigator.clipboard.writeText('https://github.com/qiqStrong/ComfyNexus.git')
                       success(t('sidebar.linkCopied'))
                       setGithubPopoverOpen(false)
                     }}

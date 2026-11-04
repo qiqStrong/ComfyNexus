@@ -151,6 +151,29 @@ class Api:
         # 启动窗口移动监听器（用于拖动还原）
         self._start_window_move_listener()
     
+    def _get_window_hwnd(self) -> int:
+        """取主窗口真实的 Win32 句柄，失败返回 0。
+
+        window.gui 是 pywebview 的 winforms 模块对象，没有 hwnd 属性；而按标题
+        FindWindowW 会命中任务栏为应用创建的 Windows.Internal.Shell.TabProxyWindow
+        （属于 explorer 进程），消息发过去静默无效。所以只认 native Form 的句柄，
+        兜底也必须枚举本进程自己的顶层窗口，不能只按标题取第一个匹配。
+        """
+        if self._window is None:
+            return 0
+
+        try:
+            return int(self._window.native.Handle.ToInt32())
+        except Exception:
+            pass
+
+        try:
+            from backend.src.utils.window_bounds import find_window_by_title
+            return find_window_by_title("ComfyNexus", max_retries=1, retry_interval=0) or 0
+        except Exception as e:
+            logger.debug(f"[_get_window_hwnd] 兜底查找句柄失败: {e}")
+            return 0
+    
     def start_async_dependencies_update(self):
         """
         启动异步依赖信息更新
@@ -417,13 +440,13 @@ class Api:
         if self._window:
             try:
                 import ctypes
-                hwnd = ctypes.windll.user32.FindWindowW(None, "ComfyNexus")
+                hwnd = self._get_window_hwnd()
                 if hwnd:
                     ctypes.windll.user32.PostMessageW(hwnd, 0x0010, 0, 0)
                 else:
                     self._window.destroy()
-            except Exception:
-                self._window.destroy()
+            except Exception as e:
+                logger.warning(f"[closeApp] PostMessage 关闭失败，回退 destroy: {e}")
                 self._window.destroy()
         logger.info("[closeApp] 执行完毕")
     
@@ -438,15 +461,9 @@ class Api:
                     import ctypes
                     user32 = ctypes.windll.user32
                     
-                    # 获取窗口句柄
-                    hwnd = None
-                    if hasattr(self._window, 'gui') and hasattr(self._window.gui, 'hwnd'):
-                        hwnd = self._window.gui.hwnd
-                    
-                    if not hwnd or hwnd == 0:
-                        hwnd = user32.FindWindowW(None, "ComfyNexus")
-                    
-                    if hwnd and hwnd != 0:
+                    hwnd = self._get_window_hwnd()
+
+                    if hwnd:
                         # 先还原窗口
                         if self._window_state:
                             x = self._window_state['x']
@@ -505,19 +522,9 @@ class Api:
             try:
                 import ctypes
 
-                # 优先尝试从 pywebview 获取窗口句柄
-                hwnd = None
-                if hasattr(self._window, 'gui') and hasattr(self._window.gui, 'hwnd'):
-                    hwnd = self._window.gui.hwnd
-                    logger.debug(f"[最大化] 从 pywebview.gui.hwnd 获取窗口句柄: {hwnd}")
+                hwnd = self._get_window_hwnd()
 
-                # 如果失败，尝试通过窗口标题查找
-                if not hwnd or hwnd == 0:
-                    user32 = ctypes.windll.user32
-                    hwnd = user32.FindWindowW(None, "ComfyNexus")
-                    logger.debug(f"[最大化] 通过 FindWindowW 查找窗口句柄: {hwnd}")
-
-                if hwnd and hwnd != 0:
+                if hwnd:
                     user32 = ctypes.windll.user32
 
                     if self._is_maximized:
@@ -608,17 +615,11 @@ class Api:
             dict: {"success": bool, "message": str}
         """
         try:
-            from backend.src.utils.window_bounds import reset_window_to_center, find_window_by_title
-            
-            # 获取窗口句柄
-            hwnd = None
-            if hasattr(self._window, 'gui') and hasattr(self._window.gui, 'hwnd'):
-                hwnd = self._window.gui.hwnd
-            
-            if not hwnd or hwnd == 0:
-                hwnd = find_window_by_title("ComfyNexus", max_retries=3, retry_interval=0.2)
-            
-            if hwnd and hwnd != 0:
+            from backend.src.utils.window_bounds import reset_window_to_center
+
+            hwnd = self._get_window_hwnd()
+
+            if hwnd:
                 # 从配置获取默认窗口尺寸
                 default_width, default_height = self._get_settings_window_size()
                 
@@ -649,17 +650,11 @@ class Api:
             dict: {"success": bool, "adjusted": bool, "message": str}
         """
         try:
-            from backend.src.utils.window_bounds import check_and_fix_window_bounds, find_window_by_title
-            
-            # 获取窗口句柄
-            hwnd = None
-            if hasattr(self._window, 'gui') and hasattr(self._window.gui, 'hwnd'):
-                hwnd = self._window.gui.hwnd
-            
-            if not hwnd or hwnd == 0:
-                hwnd = find_window_by_title("ComfyNexus", max_retries=1, retry_interval=0)
-            
-            if hwnd and hwnd != 0:
+            from backend.src.utils.window_bounds import check_and_fix_window_bounds
+
+            hwnd = self._get_window_hwnd()
+
+            if hwnd:
                 adjusted = check_and_fix_window_bounds(hwnd)
                 
                 if adjusted:
@@ -776,22 +771,12 @@ class Api:
                 # 等待窗口创建完成（最多等待 5 秒）
                 hwnd = None
                 for attempt in range(50):  # 50 次 * 0.1 秒 = 5 秒
-                    # 优先尝试从 pywebview 获取
-                    if hasattr(self._window, 'gui') and hasattr(self._window.gui, 'hwnd'):
-                        hwnd = self._window.gui.hwnd
-                        if hwnd and hwnd != 0:
-                            logger.debug(f"[窗口监听] 从 pywebview.gui.hwnd 获取窗口句柄: {hwnd}")
-                            break
-                    
-                    # 尝试通过窗口标题查找
-                    hwnd = user32.FindWindowW(None, "ComfyNexus")
-                    if hwnd and hwnd != 0:
-                        logger.debug(f"[窗口监听] 通过 FindWindowW 获取窗口句柄: {hwnd} (尝试 {attempt + 1}/50)")
+                    hwnd = self._get_window_hwnd()
+                    if hwnd:
                         break
-                    
                     time.sleep(0.1)
-                
-                if not hwnd or hwnd == 0:
+
+                if not hwnd:
                     logger.warning("[窗口监听] 无法获取窗口句柄，监听器退出")
                     return
                 
@@ -1024,14 +1009,9 @@ class Api:
             user32 = ctypes.windll.user32
             
             # 获取窗口句柄
-            hwnd = None
-            if hasattr(self._window, 'gui') and hasattr(self._window.gui, 'hwnd'):
-                hwnd = self._window.gui.hwnd
+            hwnd = self._get_window_hwnd()
             
-            if not hwnd or hwnd == 0:
-                hwnd = user32.FindWindowW(None, "ComfyNexus")
-            
-            if hwnd and hwnd != 0:
+            if hwnd:
                 # 释放鼠标捕获
                 user32.ReleaseCapture()
                 
@@ -1086,14 +1066,9 @@ class Api:
             
             user32 = ctypes.windll.user32
             
-            hwnd = None
-            if hasattr(self._window, 'gui') and hasattr(self._window.gui, 'hwnd'):
-                hwnd = self._window.gui.hwnd
+            hwnd = self._get_window_hwnd()
             
-            if not hwnd or hwnd == 0:
-                hwnd = user32.FindWindowW(None, "ComfyNexus")
-            
-            if not hwnd or hwnd == 0:
+            if not hwnd:
                 logger.error("[拖动还原] 无法获取窗口句柄")
                 return {"success": False, "message": "无法获取窗口句柄"}
             
@@ -1179,16 +1154,9 @@ class Api:
             import ctypes
             user32 = ctypes.windll.user32
             
-            hwnd = None
-            if hasattr(self._window, 'gui') and hasattr(self._window.gui, 'hwnd'):
-                hwnd = self._window.gui.hwnd
-                logger.debug(f"[全屏转最大化] 获取窗口句柄: {hwnd}")
+            hwnd = self._get_window_hwnd()
             
-            if not hwnd or hwnd == 0:
-                hwnd = user32.FindWindowW(None, "ComfyNexus")
-                logger.debug(f"[全屏转最大化] 通过 FindWindowW 查找窗口句柄: {hwnd}")
-            
-            if hwnd and hwnd != 0:
+            if hwnd:
                 self._save_window_rect(hwnd)
                 
                 from backend.src.utils.window_bounds import MONITORINFO
@@ -1238,14 +1206,9 @@ class Api:
             import ctypes
             user32 = ctypes.windll.user32
             
-            hwnd = None
-            if hasattr(self._window, 'gui') and hasattr(self._window.gui, 'hwnd'):
-                hwnd = self._window.gui.hwnd
-            
-            if not hwnd or hwnd == 0:
-                hwnd = user32.FindWindowW(None, "ComfyNexus")
-            
-            if hwnd and hwnd != 0:
+            hwnd = self._get_window_hwnd()
+
+            if hwnd:
                 from backend.src.utils.window_bounds import RECT
                 
                 rect = RECT()
@@ -1275,14 +1238,9 @@ class Api:
             import ctypes
             user32 = ctypes.windll.user32
             
-            hwnd = None
-            if hasattr(self._window, 'gui') and hasattr(self._window.gui, 'hwnd'):
-                hwnd = self._window.gui.hwnd
+            hwnd = self._get_window_hwnd()
             
-            if not hwnd or hwnd == 0:
-                hwnd = user32.FindWindowW(None, "ComfyNexus")
-            
-            if hwnd and hwnd != 0:
+            if hwnd:
                 user32.SetWindowPos(hwnd, None, physical_x, physical_y, 0, 0, 0x0001 | 0x0004)
         except Exception:
             self._window.move(x, y)
@@ -1504,7 +1462,65 @@ class Api:
                             logger.info(f"[get_app_version] 解析版本: {version}")
                             return version
             return "1.0.0"
-    
+
+    def get_local_release_info(self):
+        """
+        读取随应用分发的 version.json，作为离线可用的更新日志来源。
+
+        GitHub API 在部分网络环境下不可达，或 fork 尚无 Release 时，
+        前端用它兜底展示当前构建的更新说明。
+
+        Returns:
+            dict: {
+                "success": bool,
+                "version": str,
+                "published_at": str,
+                "release_notes": str,
+                "file_size": int,
+                "error": str (失败时)
+            }
+        """
+        import json
+        from backend.src.utils.paths import get_project_root, get_internal_dir
+
+        project_root = get_project_root()
+        candidates = [
+            project_root / "version.json",
+            # 开发环境 project_root 是 source-code/，真正的发布元数据在仓库根目录；
+            # 打包环境这里是 exe 同级目录的上一级，通常不存在，不会误读。
+            project_root.parent / "version.json",
+            get_internal_dir() / "version.json",
+        ]
+
+        best = None
+        for path in candidates:
+            try:
+                if not path.is_file():
+                    continue
+                data = json.loads(path.read_text(encoding="utf-8"))
+                if not isinstance(data, dict):
+                    continue
+                # 取发布时间最新的一份：开发环境里 source-code/version.json 往往是旧数据
+                published = str(data.get("published_at", ""))
+                if best is None or published > best[0]:
+                    best = (published, data, path)
+            except Exception as e:
+                logger.warning(f"[get_local_release_info] 读取 {path} 失败: {e}")
+
+        if best is not None:
+            _, data, path = best
+            logger.dev(f"[get_local_release_info] 使用 {path}")
+            return {
+                "success": True,
+                "version": str(data.get("version", "")),
+                "published_at": str(data.get("published_at", "")),
+                "release_notes": str(data.get("release_notes", "")),
+                "file_size": int(data.get("file_size") or 0),
+            }
+
+        logger.warning("[get_local_release_info] 未找到可用的本地 version.json")
+        return {"success": False, "error": "本地 version.json 不存在"}
+
     # ========== 模块配置管理 API ==========
     
     def get_module_config(self):
@@ -3724,7 +3740,7 @@ class Api:
             logger.dev(f"[API] 获取代理配置失败: {e}")
             return None
 
-    def get_github_releases(self, owner: str = "Allen-xxa", repo: str = "ComfyNexus", per_page: int = 3):
+    def get_github_releases(self, owner: str = "qiqStrong", repo: str = "ComfyNexus", per_page: int = 3):
         """
         获取 GitHub 仓库的 Releases 列表（通过镜像代理）
         
@@ -6785,7 +6801,9 @@ class Api:
         negative_prompt: str = "",
         preview_image: str = "",
         remark: str = "",
-        tags: list = None
+        tags: list = None,
+        params: dict = None,
+        allow_empty_positive: bool = False
     ):
         """
         创建新提示词
@@ -6798,6 +6816,9 @@ class Api:
             preview_image: 预览图路径
             remark: 使用备注
             tags: 标签数组
+            params: 生成参数 dict（model/sampler/scheduler/steps/cfg/seed/
+                width/height/duration/asset_type/source_asset_id）
+            allow_empty_positive: 允许正向提示词为空
             
         Returns:
             dict: {
@@ -6807,7 +6828,8 @@ class Api:
             }
         """
         return self._prompt_library_controller.prompt_create(
-            name, positive_prompt, category_id, negative_prompt, preview_image, remark, tags
+            name, positive_prompt, category_id, negative_prompt, preview_image,
+            remark, tags, params, allow_empty_positive
         )
     
     def prompt_update(
@@ -6819,7 +6841,8 @@ class Api:
         negative_prompt: str = None,
         preview_image: str = None,
         remark: str = None,
-        tags: list = None
+        tags: list = None,
+        params: dict = None
     ):
         """
         更新提示词
@@ -6827,6 +6850,7 @@ class Api:
         Args:
             prompt_id: 提示词ID
             其他参数为可选更新字段
+            params: 生成参数 dict，数值字段传 None 表示清空
             
         Returns:
             dict: {
@@ -6835,7 +6859,8 @@ class Api:
             }
         """
         return self._prompt_library_controller.prompt_update(
-            prompt_id, name, positive_prompt, category_id, negative_prompt, preview_image, remark, tags
+            prompt_id, name, positive_prompt, category_id, negative_prompt,
+            preview_image, remark, tags, params
         )
     
     def prompt_delete(self, prompt_id: str):
@@ -6963,6 +6988,23 @@ class Api:
             }
         """
         return self._prompt_library_controller.category_update(category_id, name, icon, sort_order)
+    
+    def category_move(self, category_id: str, parent_id: str = None, index: int = 0):
+        """
+        移动分类（换父级和/或排序）
+        
+        Args:
+            category_id: 分类ID
+            parent_id: 目标父分类ID，None 表示顶级
+            index: 在目标同级列表中的插入位置
+            
+        Returns:
+            dict: {
+                "success": bool,
+                "error_message": str (可选)
+            }
+        """
+        return self._prompt_library_controller.category_move(category_id, parent_id, index)
     
     def category_delete(self, category_id: str):
         """
@@ -7192,18 +7234,19 @@ class Api:
             logger.error(f"更新文件夹失败：{e}")
             return {"success": False, "error": str(e)}
     
-    def delete_workflow_folder(self, folder_id: str) -> dict:
+    def delete_workflow_folder(self, folder_id: str, move_contents_to_root: bool = False) -> dict:
         """
         删除文件夹
         
         Args:
             folder_id: 文件夹 ID
+            move_contents_to_root: 为 True 时先把文件夹内的工作流移动到根目录再删除
             
         Returns:
             dict: {"success": bool, "error": str}
         """
         try:
-            result = self._workflow_controller.delete_folder(folder_id)
+            result = self._workflow_controller.delete_folder(folder_id, move_contents_to_root)
             if result.get("success"):
                 return {"success": True}
             return {"success": False, "error": result.get("error", "删除失败")}
@@ -7597,9 +7640,14 @@ class Api:
         """导出工作流到指定路径"""
         return self._gallery_controller.gallery_export_workflow_to_path(asset_id, save_path)
 
-    def gallery_export_to_prompt_library(self, asset_id: str) -> dict:
-        """导出资产到提示词库"""
-        return self._gallery_controller.gallery_export_to_prompt_library(asset_id)
+    def gallery_export_to_prompt_library(self, asset_id: str, force: bool = False) -> dict:
+        """导出资产到提示词库
+
+        Args:
+            asset_id: 资产ID
+            force: 资产未解析到提示词时仍要导入（只保留图片和参数）
+        """
+        return self._gallery_controller.gallery_export_to_prompt_library(asset_id, force)
 
     def gallery_open_location(self, asset_id: str) -> dict:
         """打开文件所在位置"""
@@ -7626,12 +7674,16 @@ class Api:
         return self._gallery_controller.gallery_create_category(name, parent_id)
 
     def gallery_update_category(self, category_id: str, name: str = None) -> dict:
-        """更新分类"""
+        """重命名分类"""
         return self._gallery_controller.gallery_update_category(category_id, name)
 
-    def gallery_delete_category(self, category_id: str, cascade: bool = True) -> dict:
-        """删除分类"""
-        return self._gallery_controller.gallery_delete_category(category_id, cascade)
+    def gallery_move_category(self, category_id: str, parent_id: str = None) -> dict:
+        """移动分类到新的父级"""
+        return self._gallery_controller.gallery_move_category(category_id, parent_id)
+
+    def gallery_delete_category(self, category_id: str, move_contents_to_parent: bool = True) -> dict:
+        """删除分类（内容先上浮一级）"""
+        return self._gallery_controller.gallery_delete_category(category_id, move_contents_to_parent)
 
     def gallery_get_thumbnail(self, asset_id: str):
         """获取资产缩略图（返回 Flask Response）"""

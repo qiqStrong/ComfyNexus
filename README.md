@@ -7,8 +7,8 @@
 <p><strong>为专业创作者而生的 ComfyUI 现代化管理平台</strong></p>
 
 <p>
-  <a href="https://github.com/Allen-xxa/ComfyNexus/releases">
-    <img src="https://img.shields.io/github/v/release/Allen-xxa/ComfyNexus?style=flat-square&color=3b82f6" alt="Version">
+  <a href="https://github.com/qiqStrong/ComfyNexus/releases">
+    <img src="https://img.shields.io/github/v/release/qiqStrong/ComfyNexus?style=flat-square&color=3b82f6" alt="Version">
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
@@ -16,8 +16,8 @@
   <a href="https://www.microsoft.com/windows">
     <img src="https://img.shields.io/badge/platform-Windows-6366f1?style=flat-square" alt="Platform">
   </a>
-  <a href="https://github.com/Allen-xxa/ComfyNexus/releases">
-    <img src="https://img.shields.io/github/downloads/Allen-xxa/ComfyNexus/total?style=flat-square&color=f59e0b" alt="Downloads">
+  <a href="https://github.com/qiqStrong/ComfyNexus/releases">
+    <img src="https://img.shields.io/github/downloads/qiqStrong/ComfyNexus/total?style=flat-square&color=f59e0b" alt="Downloads">
   </a>
 </p>
 
@@ -81,7 +81,7 @@
 
 ### 🏪 插件市场
 
-- **三级缓存加速** — 首屏加载 <100ms
+- **列表缓存与后台预取** — 首次拉取后本地缓存，重复打开不再每次联网（具体加载耗时未做过基准测试，不承诺数值指标）
 - **一键安装** — 从 GitHub 仓库一键安装插件
 - **安装前依赖检查** — 自动检测依赖冲突，提前预警
 - **推荐插件** — 精选优质插件推荐列表
@@ -106,11 +106,12 @@
 
 ### 🤖 AI 助手
 
-- **多模型对接** — 支持 OpenAI、Claude、智谱、讯飞星火、火山引擎、Ollama 等
-- **联网搜索** — AI 可实时检索互联网信息
-- **深度思考模式** — 让 AI 进行更深入的推理分析
+- **多模型对接** — 内置 OpenAI、xflow、iFlow、自定义 OpenAI 兼容服务、讯飞星火、火山引擎、智谱 GLM、Ollama 本地模型等接入方式；Claude 需通过兼容 OpenAI 接口的中转服务接入
+- **联网搜索** — AI 可实时检索互联网信息（DuckDuckGo 默认可用；Google、Tavily 需在设置中填入密钥后启用）
+- **深度思考模式** — 通过追加引导提示让模型展开更深入的推理分析
 - **文件与图片分析** — 上传文档或图片，AI 直接分析
 - **报错日志分析** — AI 识别错误根源并提供修复步骤
+- **话题管理** — 支持新建、切换与重命名对话话题，并可按首条消息自动生成标题
 
 ### 🔗 工作流管理
 
@@ -126,6 +127,7 @@
 ### 🖼️ 资产库
 
 - **输出图片浏览** — 瀑布流展示生成作品
+- **层级整理** — 分类与资产库中的本地文件夹一一对应，归类即移动文件；侧边栏按层级浏览与面包屑回溯
 - **NSFW 过滤** — 内置 ONNX 模型自动识别
 - **批量操作** — 支持批量选择、删除、移动、分类
 
@@ -146,7 +148,7 @@
 - **GitHub/PyPI 镜像加速** — 解决国内网络访问问题
 - **代理设置** — 支持 Git、pip、AI 请求等全链路代理
 - **模块管理** — 自定义启用/禁用功能模块，侧边栏支持拖拽排序
-- **自动更新** — 应用启动时自动检查新版本
+- **更新检查** — 默认关闭，当前设置界面未提供"应用自动更新"开关（插件更新另有开关），不会在后台自动拉取或替换程序
 
 ---
 
@@ -156,13 +158,14 @@
 
 | 项目 | 要求 |
 |:---|:---|
-| 操作系统 | Windows 10/11（已内置 MinGit 2.53.0） |
-| Python | 3.12+ |
+| 操作系统 | Windows 10/11 |
+| Git | 无需预先安装：首次启动会引导你下载便携版 MinGit 或指定已有 Git |
+| Python | 应用本体绿色免安装（运行环境已内置）；你托管的 ComfyUI 需要自己的 Python 环境，应用会检测并显示其版本 |
 | GPU | NVIDIA（CUDA 支持） |
 
 ### 安装步骤
 
-1. **下载** 最新 [Releases](https://github.com/Allen-xxa/ComfyNexus/releases) 压缩包
+1. **下载** 最新 [Releases](https://github.com/qiqStrong/ComfyNexus/releases) 压缩包
 2. **解压** 即可使用（绿色免安装）
 3. **启动** 运行 `ComfyNexus.exe`，首次启动选择你的 ComfyUI 根目录
 
@@ -173,7 +176,7 @@
 <details>
 <summary><b>需要手动安装 Git 吗？</b></summary>
 
-**完全不需要**。ComfyNexus 内置 MinGit 2.53.0，自动处理所有版本控制任务。
+**不需要预先安装**。首次启动时 ComfyNexus 会进入引导流程：自动下载便携版 MinGit（当前版本 2.53.0.2），或者直接指定你电脑上已有的 Git，之后所有版本控制操作都走它。
 </details>
 
 <details>
@@ -185,26 +188,31 @@
 <details>
 <summary><b>AI 助手支持哪些模型？</b></summary>
 
-支持 xflow API聚合平台（推荐，不贵模型也全，并且有饭恰）、 OpenAI（GPT-4）、Claude、智谱 GLM、Ollama 本地模型等主流 AI 服务。
+接入方式包括 xflow API 聚合平台（推荐，模型全且价格低）、OpenAI、iFlow、任意兼容 OpenAI 接口的自定义服务、智谱 GLM、讯飞星火、火山引擎，以及 Ollama 本地模型。
+Claude 系列没有原生接入方式，需要通过兼容 OpenAI 接口的中转服务（例如聚合平台）配置。
+Ollama 本地模型采用分阶段超时策略：允许模型按需冷加载，生成过程中只在长时间无新内容时中断。
+</details>
+
+<details>
+<summary><b>插件列表一直加载中？</b></summary>
+
+请在设置中配置 **GitHub Token**。这能让 API 访问上限从 60 次/小时 提升至 5000 次/小时。
+</details>
+
+<details>
+<summary><b>国内网络访问 GitHub 太慢怎么办？</b></summary>
+
+在系统设置中配置 **GitHub 镜像加速** 和 **PyPI 镜像源**，支持多镜像源自动 fallback。
 </details>
 
 ---
 
 <div align="center">
 
-## ☕ 支持作者
 
-如果 ComfyNexus 对你有帮助，欢迎请作者喝杯咖啡
 
-<!-- 赞助二维码位置：将下方图片链接替换为你的赞助二维码 -->
-<img src="wx.png" alt="赞助" width="180">
+</div>
 
 ---
 
-## 🤝 参与贡献
-
-欢迎提交 [Issue](https://github.com/Allen-xxa/ComfyNexus/issues) 或 [Pull Request](https://github.com/Allen-xxa/ComfyNexus/pulls)
-
-**Made with ❤️ by ComfyNexus Team**
-
-</div>
+**Last verified**: 2026-11-01（本文件为产品功能介绍的唯一来源；条目均对照实际代码/脚本核实，维护规则见 `source-code/README更新规范.md`）

@@ -1,40 +1,32 @@
 /**
  * 资产库顶部工具栏
+ *
+ * 这一行只负责"怎么看"（视图、尺寸、刷新、导入、批量）；"看哪些"交给下方的
+ * AssetFilterBar 二级筛选区，两者一起被筛选区的显隐开关控制。
  */
 
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Search, Upload, Download, CheckSquare, Settings, RefreshCw, Loader2, Eye, Star, ChevronDown, FolderTree } from 'lucide-react'
-import { Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Slider, Switch } from '@/components/ui'
+import { Search, Upload, Download, CheckSquare, Settings, RefreshCw, Loader2, Eye, ChevronDown, FolderTree, Columns3, LayoutGrid } from 'lucide-react'
+import { Button, Input, Label, Slider, Switch } from '@/components/ui'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { useAssetStore } from '@/stores/useAssetStore'
+import { AssetFilterBar } from './AssetFilterBar'
 import { cn } from '@/lib/utils'
 
 interface AssetToolbarProps {
   onOpenSettings?: () => void
+  /** 影院模式下隐藏排布相关控件，退出后再显示 */
+  hideLayoutControls?: boolean
 }
 
-const RATING_FILTERS = [
-  { value: 'all', label: 'allRatings' },
-  { value: '0', label: 'unrated' },
-  { value: '1', label: '1star' },
-  { value: '2', label: '2stars' },
-  { value: '3', label: '3stars' },
-  { value: '4', label: '4stars' },
-  { value: '5', label: '5stars' }
-] as const
-
-export function AssetToolbar({ onOpenSettings }: AssetToolbarProps) {
+export function AssetToolbar({ onOpenSettings, hideLayoutControls }: AssetToolbarProps) {
   const { t } = useTranslation()
   const {
     searchQuery,
     setSearchQuery,
-    filterTags,
-    activeFilterTag,
-    setActiveFilterTag,
     isBatchMode,
     selectedAssetIds,
-    getAssetCount,
     toggleBatchMode,
     scanLibrary,
     incrementalScanLibrary,
@@ -43,16 +35,15 @@ export function AssetToolbar({ onOpenSettings }: AssetToolbarProps) {
     exportZip,
     thumbnailSize,
     setThumbnailSize,
-    ratingFilter,
-    setRatingFilter,
     showFoldersInList,
-    setShowFoldersInList
+    setShowFoldersInList,
+    viewMode,
+    setViewMode
   } = useAssetStore()
 
   const [isImporting, setIsImporting] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [isRefreshMenuOpen, setIsRefreshMenuOpen] = useState(false)
-  const totalCount = getAssetCount()
 
   const handleIncrementalRefresh = async () => {
     setIsRefreshMenuOpen(false)
@@ -119,8 +110,43 @@ export function AssetToolbar({ onOpenSettings }: AssetToolbarProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 rounded-md border border-border-subtle bg-surface-active px-2.5 py-1.5">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {!hideLayoutControls && (
+            <div className="flex items-center gap-0.5 rounded-md border border-border-subtle bg-surface-active p-0.5">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setViewMode('masonry')}
+              title={t('asset.viewModes.masonry')}
+              className={cn(
+                'size-7',
+                viewMode === 'masonry'
+                  ? 'bg-primary/15 text-primary hover:bg-primary/20'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Columns3 className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setViewMode('grid')}
+              title={t('asset.viewModes.grid')}
+              className={cn(
+                'size-7',
+                viewMode === 'grid'
+                  ? 'bg-primary/15 text-primary hover:bg-primary/20'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <LayoutGrid className="size-4" />
+            </Button>
+          </div>
+          )}
+          <div
+            className="flex items-center gap-2 rounded-md border border-border-subtle bg-surface-active px-2.5 py-1.5"
+            title={t('asset.showFoldersHint')}
+          >
             <FolderTree className="size-4 text-muted-foreground" />
             <Label htmlFor="asset-show-folders" className="cursor-pointer text-xs text-muted-foreground">
               {t('asset.showFolders')}
@@ -132,36 +158,22 @@ export function AssetToolbar({ onOpenSettings }: AssetToolbarProps) {
               aria-label={t('asset.showFolders')}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Eye className="size-4 text-muted-foreground" />
-            <Slider
-              value={[thumbnailSize]}
-              onValueChange={(value) => setThumbnailSize(value[0])}
-              min={100}
-              max={500}
-              step={10}
-              className="w-24"
-            />
-            <span className="w-12 text-xs text-muted-foreground">
-              {t('asset.thumbnailSizeValue', { size: thumbnailSize })}
-            </span>
-          </div>
-          <Select
-            value={ratingFilter}
-            onValueChange={(value) => setRatingFilter(value)}
-          >
-            <SelectTrigger className="h-8 w-auto gap-1 px-3">
-              <Star className="size-4" />
-              <SelectValue placeholder={t('asset.ratingFilter')} />
-            </SelectTrigger>
-            <SelectContent>
-              {RATING_FILTERS.map((rating) => (
-                <SelectItem key={rating.value} value={rating.value}>
-                  {t(`asset.rating.${rating.label}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {!hideLayoutControls && (
+            <div className="flex items-center gap-2">
+              <Eye className="size-4 text-muted-foreground" />
+              <Slider
+                value={[thumbnailSize]}
+                onValueChange={(value) => setThumbnailSize(value[0])}
+                min={100}
+                max={500}
+                step={10}
+                className="w-24"
+              />
+              <span className="w-12 text-xs text-muted-foreground">
+                {t('asset.thumbnailSizeValue', { size: thumbnailSize })}
+              </span>
+            </div>
+          )}
           <Popover open={isRefreshMenuOpen} onOpenChange={setIsRefreshMenuOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -242,41 +254,7 @@ export function AssetToolbar({ onOpenSettings }: AssetToolbarProps) {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{t('asset.quickFilter')}:</span>
-          <div className="flex gap-2">
-            {filterTags.map((tag) => (
-              <Button
-                key={tag.id}
-                variant="ghost"
-                size="sm"
-                onClick={() => setActiveFilterTag(tag.id)}
-                className={cn(
-                  'h-auto rounded-full px-3 py-1 text-xs',
-                  activeFilterTag === tag.id
-                    ? 'bg-primary/15 text-primary hover:bg-primary/20'
-                    : 'bg-surface-active text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {tag.name}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <div className="text-xs text-muted-foreground">
-          {isBatchMode ? (
-            <span>
-              {t('asset.selectedCount', { count: selectedAssetIds.length })}
-            </span>
-          ) : (
-            <span>
-              {t('asset.totalCount', { count: totalCount })}
-            </span>
-          )}
-        </div>
-      </div>
+      <AssetFilterBar />
     </header>
   )
 }

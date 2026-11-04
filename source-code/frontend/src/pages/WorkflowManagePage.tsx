@@ -2,9 +2,9 @@
  * 工作流管理页面
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Upload, Search, Loader2, FolderOpen, CheckSquare, FolderSync, Cog } from 'lucide-react'
+import { Upload, Search, Loader2, FolderOpen, CheckSquare, FolderSync, Cog, LayoutGrid, LayoutList } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui'
 import { Input } from '@/components/ui/Input'
@@ -18,7 +18,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { WorkflowSidebar, WorkflowDetailDialog, WorkflowDragLayer, WorkflowSelectionBox, WorkflowBatchToolbar, WorkflowGrid, WorkflowFolderManageDialog, WorkflowSettingsModal } from '@/components/workflow'
+import { ResizableSidebar } from '@/components/common/ResizableSidebar'
+import { WorkflowSidebar, WorkflowDragLayer, WorkflowSelectionBox, WorkflowBatchToolbar, WorkflowGrid, WorkflowListView, WorkflowDetailPanel, WorkflowSettingsModal } from '@/components/workflow'
 import { DragProvider, useDragContext } from '@/components/workflow/WorkflowDragContext'
 import { useWorkflowStore } from '@/stores/useWorkflowStore'
 import { useEnvStore } from '@/stores/useEnvStore'
@@ -28,6 +29,7 @@ import { loadNodeTypeMap, loadLocalNodeMap } from '@/utils/workflowParser'
 import { EnvRequiredGuide } from '@/components/common/EnvRequiredGuide'
 import type { Workflow, WorkflowInfoUpdate } from '@/types/workflow'
 import type { WorkflowGridRef } from '@/components/workflow/WorkflowGrid'
+import type { WorkflowListRef } from '@/components/workflow/WorkflowListView'
 
 function WorkflowManagePageInner() {
   const { t } = useTranslation()
@@ -47,26 +49,27 @@ function WorkflowManagePageInner() {
     batchToggleFavorite,
     batchDeleteWorkflows,
     setBatchMode,
-    folders,
     addFolder,
     updateFolder,
     deleteFolder,
     filterTags,
     activeFilterTag,
-    setActiveFilterTag
+    setActiveFilterTag,
+    viewMode,
+    setViewMode
   } = useWorkflowStore()
 
   const { dropTargetId } = useDragContext()
 
-  const [showDetailDialog, setShowDetailDialog] = useState(false)
-  const [detailWorkflow, setDetailWorkflow] = useState<Workflow | null>(null)
+  const [activeWorkflowId, setActiveWorkflowId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [isImporting, setIsImporting] = useState(false)
   
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(null)
   const [batchDeleteConfirmOpen, setBatchDeleteConfirmOpen] = useState(false)
-  const [folderManageOpen, setFolderManageOpen] = useState(false)
+  const [folderDeleteOpen, setFolderDeleteOpen] = useState(false)
+  const [pendingFolderDelete, setPendingFolderDelete] = useState<{ id: string; name: string; hasWorkflows: boolean } | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   
   const [isSelecting, setIsSelecting] = useState(false)
@@ -74,6 +77,7 @@ function WorkflowManagePageInner() {
   const [selectionEnd, setSelectionEnd] = useState<{ x: number; y: number } | null>(null)
   
   const gridRef = useRef<WorkflowGridRef>(null)
+  const listRef = useRef<WorkflowListRef>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null)
   const isSelectingRef = useRef(false)
@@ -95,9 +99,26 @@ function WorkflowManagePageInner() {
     (Array.isArray(w?.tags) && w.tags.some(tag => tag?.toLowerCase().includes(searchQuery.toLowerCase())))
   )
 
-  const handleShowDetail = useCallback((workflow: Workflow) => {
-    setDetailWorkflow(workflow)
-    setShowDetailDialog(true)
+  // 右侧详情面板跟着当前筛选走：选中的工作流被筛掉或删除时自动落到列表第一项
+  const activeWorkflow = useMemo(
+    () => filteredWorkflows.find(w => w.id === activeWorkflowId) ?? null,
+    [filteredWorkflows, activeWorkflowId]
+  )
+
+  useEffect(() => {
+    if (activeWorkflow) return
+    const first = filteredWorkflows[0]
+    if (first) setActiveWorkflowId(first.id)
+  }, [activeWorkflow, filteredWorkflows])
+
+  const getCardRefs = useCallback((): Map<string, HTMLDivElement> =>
+    (viewMode === 'list'
+      ? listRef.current?.getCardRefs()
+      : gridRef.current?.getCardRefs()) ?? new Map(),
+  [viewMode])
+
+  const handleOpenDetail = useCallback((workflow: Workflow) => {
+    setActiveWorkflowId(workflow.id)
   }, [])
 
   const handleExport = useCallback(async (workflow: Workflow) => {
@@ -155,18 +176,9 @@ function WorkflowManagePageInner() {
     await toggleFavorite(workflow.id)
   }, [toggleFavorite])
 
-  const handleSaveInfo = useCallback(async (info: WorkflowInfoUpdate) => {
-    if (detailWorkflow) {
-      const updated = await updateWorkflowInfo(detailWorkflow.id, info)
-      if (updated) {
-        // 从 store 中获取最新的完整 workflow 对象
-        const latestWorkflow = useWorkflowStore.getState().workflows.find(w => w.id === detailWorkflow.id)
-        if (latestWorkflow) {
-          setDetailWorkflow(latestWorkflow)
-        }
-      }
-    }
-  }, [detailWorkflow, updateWorkflowInfo])
+  const handleSaveInfo = useCallback(async (workflowId: string, info: WorkflowInfoUpdate) => {
+    await updateWorkflowInfo(workflowId, info)
+  }, [updateWorkflowInfo])
 
   const getIntersectingCardIds = useCallback((
     start: { x: number; y: number },
@@ -180,7 +192,7 @@ function WorkflowManagePageInner() {
     }
 
     const intersectingIds: string[] = []
-    const cardRefs = gridRef.current?.getCardRefs() ?? new Map()
+    const cardRefs = getCardRefs()
 
     cardRefs.forEach((cardEl, workflowId) => {
       const cardRect = cardEl.getBoundingClientRect()
@@ -196,7 +208,7 @@ function WorkflowManagePageInner() {
     })
 
     return intersectingIds
-  }, [])
+  }, [getCardRefs])
 
   const handleSelectionMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return
@@ -290,6 +302,36 @@ function WorkflowManagePageInner() {
     setBatchDeleteConfirmOpen(false)
   }, [selectedWorkflowIds, batchDeleteWorkflows, t])
 
+  const handleCreateFolder = useCallback(async (parentId: string | null, name: string) => {
+    const folder = await addFolder(name, parentId ?? undefined)
+    if (!folder) toast.error(t('workflow.toast.createFolderFailed'))
+    else toast.success(t('workflow.toast.createFolderSuccess'))
+  }, [addFolder, t])
+
+  const handleRenameFolder = useCallback(async (id: string, name: string) => {
+    const ok = await updateFolder(id, { name })
+    if (!ok) toast.error(t('workflow.toast.renameFolderFailed'))
+  }, [updateFolder, t])
+
+  const handleMoveFolder = useCallback(async (id: string, newParentId: string | null) => {
+    const ok = await updateFolder(id, { parentId: newParentId ?? 'root' })
+    if (!ok) toast.error(t('workflow.toast.folderMoveFailed'))
+  }, [updateFolder, t])
+
+  const handleDeleteFolderRequest = useCallback((id: string, name: string, hasWorkflows: boolean) => {
+    setPendingFolderDelete({ id, name, hasWorkflows })
+    setFolderDeleteOpen(true)
+  }, [])
+
+  const handleConfirmDeleteFolder = useCallback(async () => {
+    if (!pendingFolderDelete) return
+    const ok = await deleteFolder(pendingFolderDelete.id, true)
+    if (ok) toast.success(t('workflow.toast.deleteFolderSuccess'))
+    else toast.error(t('workflow.toast.deleteFolderFailed'))
+    setFolderDeleteOpen(false)
+    setPendingFolderDelete(null)
+  }, [pendingFolderDelete, deleteFolder, t])
+
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <header className="shrink-0 border-b border-border-subtle bg-surface p-4">
@@ -304,6 +346,37 @@ function WorkflowManagePageInner() {
             />
           </div>
           <div className="flex items-center gap-3">
+            <div className="flex items-center gap-0.5 rounded-md border border-border-subtle bg-surface-active p-0.5">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setViewMode('list')}
+                title={t('workflow.viewModes.list')}
+                className={cn(
+                  'size-7',
+                  viewMode === 'list'
+                    ? 'bg-primary/15 text-primary hover:bg-primary/20'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <LayoutList className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setViewMode('card')}
+                title={t('workflow.viewModes.card')}
+                className={cn(
+                  'size-7',
+                  viewMode === 'card'
+                    ? 'bg-primary/15 text-primary hover:bg-primary/20'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <LayoutGrid className="size-4" />
+              </Button>
+            </div>
+
             <Button
               variant={isBatchMode ? 'default' : 'outline'}
               size="sm"
@@ -366,11 +439,18 @@ function WorkflowManagePageInner() {
       </header>
 
       <main className="flex flex-1 overflow-hidden">
-        <WorkflowSidebar className="z-10" dropTargetId={dropTargetId} onOpenFolderManage={() => setFolderManageOpen(true)} />
+        <WorkflowSidebar
+          className="z-10"
+          dropTargetId={dropTargetId}
+          onCreateFolder={handleCreateFolder}
+          onRenameFolder={handleRenameFolder}
+          onDeleteFolderRequest={handleDeleteFolderRequest}
+          onMoveFolder={handleMoveFolder}
+        />
 
         <div 
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto p-6"
+          className={cn('min-w-0 flex-1 overflow-y-auto', viewMode === 'list' ? 'p-3' : 'p-6')}
           onMouseDown={handleSelectionMouseDown}
         >
           {isLoading ? (
@@ -379,18 +459,33 @@ function WorkflowManagePageInner() {
             </div>
           ) : (
             <>
-              <WorkflowGrid
-                ref={gridRef}
-                workflows={filteredWorkflows}
-                selectedWorkflowIds={selectedWorkflowIds}
-                isBatchMode={isBatchMode}
-                onSelectWorkflow={toggleWorkflowSelection}
-                onAnalyzeWorkflow={handleShowDetail}
-                onExportWorkflow={handleExport}
-                onDeleteWorkflow={handleDeleteClick}
-                onToggleFavorite={handleToggleFavorite}
-                onPreviewChange={refreshWorkflows}
-              />
+              {viewMode === 'list' ? (
+                <WorkflowListView
+                  ref={listRef}
+                  workflows={filteredWorkflows}
+                  activeWorkflowId={activeWorkflowId}
+                  selectedWorkflowIds={selectedWorkflowIds}
+                  isBatchMode={isBatchMode}
+                  onSelectWorkflow={toggleWorkflowSelection}
+                  onOpenDetail={handleOpenDetail}
+                  onExportWorkflow={handleExport}
+                  onDeleteWorkflow={handleDeleteClick}
+                  onToggleFavorite={handleToggleFavorite}
+                />
+              ) : (
+                <WorkflowGrid
+                  ref={gridRef}
+                  workflows={filteredWorkflows}
+                  selectedWorkflowIds={selectedWorkflowIds}
+                  isBatchMode={isBatchMode}
+                  onSelectWorkflow={toggleWorkflowSelection}
+                  onAnalyzeWorkflow={handleOpenDetail}
+                  onExportWorkflow={handleExport}
+                  onDeleteWorkflow={handleDeleteClick}
+                  onToggleFavorite={handleToggleFavorite}
+                  onPreviewChange={refreshWorkflows}
+                />
+              )}
 
               {filteredWorkflows.length === 0 && (
                 <div className="flex h-64 flex-col items-center justify-center text-muted-foreground">
@@ -401,19 +496,27 @@ function WorkflowManagePageInner() {
             </>
           )}
         </div>
+
+        <ResizableSidebar
+          storageKey="workflow-detail-panel"
+          side="right"
+          defaultWidth={360}
+          minWidth={300}
+          maxWidth={620}
+        >
+          <WorkflowDetailPanel
+            className="min-h-0 flex-1"
+            workflow={activeWorkflow}
+            onExport={handleExport}
+            onDelete={handleDeleteClick}
+            onToggleFavorite={handleToggleFavorite}
+            onSaveInfo={handleSaveInfo}
+            onPreviewChange={refreshWorkflows}
+          />
+        </ResizableSidebar>
       </main>
 
-      <WorkflowDetailDialog
-        open={showDetailDialog}
-        onOpenChange={setShowDetailDialog}
-        name={detailWorkflow?.name || ''}
-        description={detailWorkflow?.description || ''}
-        tags={detailWorkflow?.tags}
-        data={detailWorkflow?.rawData || null}
-        onSaveInfo={handleSaveInfo}
-      />
-
-      <WorkflowDragLayer getCardRefs={() => gridRef.current?.getCardRefs() ?? new Map()} />
+      <WorkflowDragLayer getCardRefs={getCardRefs} />
 
       {isSelecting && selectionStart && selectionEnd && (
         <WorkflowSelectionBox
@@ -460,14 +563,22 @@ function WorkflowManagePageInner() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <WorkflowFolderManageDialog
-        open={folderManageOpen}
-        onOpenChange={setFolderManageOpen}
-        folders={folders}
-        onAddFolder={addFolder}
-        onUpdateFolder={updateFolder}
-        onDeleteFolder={deleteFolder}
-      />
+      <AlertDialog open={folderDeleteOpen} onOpenChange={setFolderDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('workflow.folder.deleteTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingFolderDelete?.hasWorkflows
+                ? t('workflow.folder.deleteWithWorkflows', { name: pendingFolderDelete.name })
+                : t('workflow.folder.deleteConfirm', { name: pendingFolderDelete?.name || '' })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDeleteFolder}>{t('common.confirm')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <WorkflowSettingsModal
         open={settingsOpen}

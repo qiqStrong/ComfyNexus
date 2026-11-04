@@ -12,7 +12,12 @@ for _p in (str(_BACKEND_DIR), str(_SOURCE_ROOT)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from backend.src.utils.icon_builder import build_app_icons, describe_ico  # noqa: E402
+from backend.src.utils.icon_builder import (  # noqa: E402
+    build_app_icons,
+    describe_ico,
+    dim_near_white,
+    make_background_transparent,
+)
 
 
 @pytest.fixture
@@ -59,3 +64,106 @@ def test_可自定义尺寸(square_source, tmp_path):
     assert describe_ico(ico) == [32, 64]
     with Image.open(png) as image:
         assert image.size == (256, 256)
+
+
+def _draw_ring_on_white(size=512):
+    """白底 + 近白色闭合圆环 + 环内白底中心一点彩色
+
+    复刻本项目图标的构图：主体本身接近白色，只能靠"与边缘连通"来区分背景。
+    """
+    from PIL import ImageDraw
+
+    image = Image.new("RGBA", (size, size), (250, 250, 249, 255))
+    draw = ImageDraw.Draw(image)
+    margin = size // 6
+    draw.ellipse(
+        (margin, margin, size - margin, size - margin),
+        fill=(240, 240, 240, 255),
+        outline=(224, 224, 224, 255),
+        width=6,
+    )
+    draw.ellipse(
+        (size // 2 - 40, size // 2 - 40, size // 2 + 40, size // 2 + 40),
+        fill=(240, 192, 64, 255),
+    )
+    return image
+
+
+def test_抠图后角落透明而中心保留():
+    image = _draw_ring_on_white()
+
+    result = make_background_transparent(image)
+
+    assert result.mode == "RGBA"
+    assert result.getpixel((0, 0))[3] == 0, "外侧背景应完全透明"
+    assert result.getpixel((256, 256))[3] == 255, "环内主体不应被误删"
+
+
+def test_抠图不影响已带透明通道的图():
+    image = Image.new("RGBA", (64, 64), (250, 250, 250, 255))
+    image.putpixel((0, 0), (250, 250, 250, 0))
+
+    result = make_background_transparent(image)
+
+    assert result.getpixel((32, 32))[3] == 255
+    assert result.getpixel((0, 0))[3] == 0
+
+
+def test_容差过小时背景残留():
+    image = _draw_ring_on_white()
+
+    result = make_background_transparent(image, tolerance=0, feather=0)
+
+    # 背景色是 (250,250,249)，容差 0 时只有完全相等的像素会被判定为背景
+    hist = result.getchannel("A").histogram()
+    opaque_ratio = (sum(hist) - hist[0]) / (512 * 512)
+    assert opaque_ratio > 0.9, "容差过小应导致大部分背景未被抠掉"
+
+
+def test_build_app_icons_透明选项(tmp_path):
+    source = tmp_path / "src.png"
+    _draw_ring_on_white().save(source)
+
+    ico = tmp_path / "icon.ico"
+    png = tmp_path / "icon.png"
+    build_app_icons(source, ico, png, transparent=True, png_size=128)
+
+    with Image.open(png) as image:
+        assert image.mode == "RGBA"
+        assert image.getpixel((0, 0))[3] == 0
+
+
+def test_压暗近白色主体():
+    image = Image.new("RGBA", (64, 64), (255, 255, 255, 255))
+    # 一块彩色区域，不应被压暗
+    for x in range(10):
+        for y in range(10):
+            image.putpixel((x, y), (240, 192, 64, 255))
+
+    result = dim_near_white(image, factor=0.84)
+
+    white = result.getpixel((32, 32))
+    colored = result.getpixel((5, 5))
+    assert white[0] < 230, "近白色应被压暗"
+    assert colored[:3] == (240, 192, 64), "彩色区域不应被改动"
+
+
+def test_压暗系数为1时不改动():
+    image = Image.new("RGBA", (32, 32), (250, 250, 250, 255))
+
+    result = dim_near_white(image, factor=1.0)
+
+    assert result.getpixel((16, 16)) == (250, 250, 250, 255)
+
+
+def test_压暗不破坏透明通道():
+    """回归：带 mask 的 paste 会连 alpha 一起混合，透明像素曾被刷成不透明"""
+    image = Image.new("RGBA", (64, 64), (250, 250, 250, 0))
+    for x in range(20, 44):
+        for y in range(20, 44):
+            image.putpixel((x, y), (250, 250, 250, 255))
+
+    result = dim_near_white(image, factor=0.84)
+
+    assert result.getpixel((0, 0))[3] == 0, "原本透明的区域应保持透明"
+    assert result.getpixel((32, 32))[3] == 255, "原本不透明的区域应保持不透明"
