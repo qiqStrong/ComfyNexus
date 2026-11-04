@@ -18,6 +18,7 @@ import { useAppVersion } from './hooks/useAppVersion'
 import { useChangelogStore } from './stores/useChangelogStore'
 import { useWarningStore } from './stores/useWarningStore'
 import { ChangelogDialog } from './components/about/ChangelogDialog'
+import { fetchReleases } from './api/githubApi'
 import { GlobalTextSelectionButton } from './components/common/GlobalTextSelectionButton'
 import { SystemProxyDetectedDialog } from './components/common/SystemProxyDetectedDialog'
 import { waitForAPI, validateAPIMethods, REQUIRED_API_METHODS, isDevelopment } from './utils/pywebview'
@@ -203,12 +204,30 @@ function AppInitializer() {
   
   useEffect(() => {
     if (isReady && !versionLoading && currentVersion) {
-      if (shouldShowChangelog(currentVersion)) {
-        console.log('[AppInitializer] 检测到需要显示更新日志弹窗')
-        setShowChangelog(true)
+      if (!shouldShowChangelog(currentVersion)) return
+
+      // 自动弹出前先确认确有内容：日志为空时不弹窗，但写入已读版本避免反复判定
+      let cancelled = false
+      fetchReleases()
+        .then((releases) => {
+          if (cancelled) return
+          if (!releases || releases.length === 0) {
+            console.log('[AppInitializer] 更新日志为空，跳过自动弹窗')
+            setLastViewedVersion(currentVersion)
+            return
+          }
+          console.log('[AppInitializer] 检测到需要显示更新日志弹窗')
+          setShowChangelog(true)
+        })
+        .catch(() => {
+          if (!cancelled) setLastViewedVersion(currentVersion)
+        })
+
+      return () => {
+        cancelled = true
       }
     }
-  }, [isReady, versionLoading, currentVersion, shouldShowChangelog])
+  }, [isReady, versionLoading, currentVersion, shouldShowChangelog, setLastViewedVersion])
   
   const handleChangelogClose = () => {
     setShowChangelog(false)
