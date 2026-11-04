@@ -76,7 +76,7 @@ cd source-code
 # 构建产物位于 source-code/build_scripts/打包产物_<版本号>/
 ```
 
-版本号唯一来源：`source-code/comfy_nexus_version.py`（当前 `__version__ = "v1.2.5"`），缺省回落值 `"1.0.0"`（`build_scripts/构建工具库.ps1:93-117`）。**不存在名为 `VERSION` 的文件。**
+版本号唯一来源：`source-code/comfy_nexus_version.py`（当前 `__version__ = "v1.0.0"`），缺省回落值 `"1.0.0"`（`build_scripts/构建工具库.ps1:93-117`）。**不存在名为 `VERSION` 的文件。**
 
 ## 架构设计
 
