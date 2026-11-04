@@ -40,6 +40,8 @@ class GitStatus:
     version: str
     message: str
     needs_setup: bool
+    # Git 来源：bundled（内置 MinGit）/ system（系统 Git）/ custom（自定义）/""
+    source: str = ""
 
 
 class GitManager:
@@ -88,9 +90,16 @@ class GitManager:
             return self._check_mingit()
     
     def _check_mingit(self) -> GitStatus:
-        """检查 MinGit 可用性"""
+        """
+        检查 MinGit 可用性
+
+        解析顺序：内置 MinGit → 系统 Git → 可用性否决。
+        内置 MinGit 缺失或损坏但系统 Git 可用时，回退到系统 Git，
+        避免新机器首次启动被误判为“Git 不可用”而弹出引导窗。
+        """
         mingit_dir = get_mingit_dir()
         git_exe = mingit_dir / "cmd" / "git.exe"
+        mingit_error = ""
         
         if git_exe.exists():
             success, version = self._verify_git_executable(str(git_exe))
@@ -101,36 +110,32 @@ class GitManager:
                     path=str(git_exe),
                     version=version,
                     message="MinGit 可用",
-                    needs_setup=False
+                    needs_setup=False,
+                    source="bundled"
                 )
-            else:
-                return GitStatus(
-                    available=False,
-                    mode=GitMode.MINGIT,
-                    path=str(git_exe),
-                    version="",
-                    message=f"MinGit 存在但无法执行: {version}",
-                    needs_setup=True
-                )
+            mingit_error = f"MinGit 存在但无法执行: {version}"
         
         system_status = self._check_system_git()
         if system_status.available:
+            logger.info(f"[GitManager] 内置 MinGit 不可用，回退使用系统 Git: {system_status.path}")
             return GitStatus(
-                available=False,
-                mode=GitMode.MINGIT,
-                path="",
-                version="",
-                message="MinGit 不存在，但检测到系统 Git",
-                needs_setup=True
+                available=True,
+                mode=GitMode.SYSTEM,
+                path=system_status.path,
+                version=system_status.version,
+                message="内置 MinGit 不可用，已回退使用系统 Git",
+                needs_setup=False,
+                source="system"
             )
         
         return GitStatus(
             available=False,
             mode=GitMode.MINGIT,
-            path="",
+            path=str(git_exe) if git_exe.exists() else "",
             version="",
-            message="未检测到 Git，需要下载 MinGit 或指定 Git 路径",
-            needs_setup=True
+            message=mingit_error or "未检测到 Git，需要下载 MinGit 或指定 Git 路径",
+            needs_setup=True,
+            source=""
         )
     
     def _check_system_git(self) -> GitStatus:
@@ -145,7 +150,8 @@ class GitManager:
                 path=git_path or "git",
                 version=version,
                 message="系统 Git 可用",
-                needs_setup=False
+                needs_setup=False,
+                source="system"
             )
         
         return GitStatus(
@@ -189,7 +195,8 @@ class GitManager:
                 path=custom_path,
                 version=version,
                 message="自定义 Git 可用",
-                needs_setup=False
+                needs_setup=False,
+                source="custom"
             )
         
         return GitStatus(
