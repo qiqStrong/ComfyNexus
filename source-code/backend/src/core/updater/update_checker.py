@@ -268,54 +268,71 @@ class UpdateChecker:
              0: current == latest (无更新)
              1: current > latest (当前版本更高)
         """
-        def parse_version(v: str) -> Tuple[Tuple[int, ...], bool]:
+        def normalize(v: str) -> Tuple[str, bool]:
+            """归一化版本号：去空白、去前导 v/V、去 RC_ 前缀、转小写。
+
+            Returns:
+                (归一化后的版本字符串, 是否为正式版)
+            """
+            s = (v or "").strip()
+            is_stable = True
+            if s.lower().startswith("rc_"):
+                is_stable = False
+                s = s[3:]
+            if s[:1].lower() == "v":
+                s = s[1:]
+            return s.strip(), is_stable
+
+        def parse_version(v: str) -> Tuple[Tuple[int, ...], bool, bool]:
             """
             解析版本号
-            
+
             Returns:
-                (版本号元组, 是否为正式版)
-                正式版为 True，RC 版为 False
+                (版本号元组, 是否为正式版, 是否解析出数字版本)
             """
-            v_lower = v.lower()
-            is_stable = True
-            
-            if v_lower.startswith('rc_'):
-                is_stable = False
-                v = v[3:]
-            elif v_lower.startswith('v'):
-                v = v[1:]
-            
-            parts = v.split('.')
+            s, is_stable = normalize(v)
+            parts = [p.strip() for p in s.split(".")]
             result = []
+            parsed = False
             for p in parts:
-                p = p.strip()
                 if p.isdigit():
                     result.append(int(p))
+                    parsed = True
                 else:
-                    try:
-                        num = ''.join(c for c in p if c.isdigit())
-                        result.append(int(num) if num else 0)
-                    except (ValueError, TypeError):
+                    num = ''.join(c for c in p if c.isdigit())
+                    if num:
+                        result.append(int(num))
+                        parsed = True
+                    else:
                         result.append(0)
             while len(result) < 3:
                 result.append(0)
-            
-            return (tuple(result[:3]), is_stable)
-        
+
+            return (tuple(result[:3]), is_stable, parsed)
+
         try:
-            current_tuple, current_is_stable = parse_version(current)
-            latest_tuple, latest_is_stable = parse_version(latest)
-            
-            if current_tuple < latest_tuple:
-                return -1
-            elif current_tuple > latest_tuple:
-                return 1
-            
+            current_tuple, current_is_stable, current_parsed = parse_version(current)
+            latest_tuple, latest_is_stable, latest_parsed = parse_version(latest)
+
+            if current_parsed and latest_parsed:
+                if current_tuple < latest_tuple:
+                    return -1
+                elif current_tuple > latest_tuple:
+                    return 1
+            else:
+                # 无法解析为数字版本时回退为归一化字符串比较，保证不死循环、不抛异常
+                current_norm, _ = normalize(current)
+                latest_norm, _ = normalize(latest)
+                if current_norm.lower() < latest_norm.lower():
+                    return -1
+                elif current_norm.lower() > latest_norm.lower():
+                    return 1
+
             if not current_is_stable and latest_is_stable:
                 return -1
             elif current_is_stable and not latest_is_stable:
                 return 1
-            
+
             return 0
         except Exception as e:
             logger.warning(f"[UpdateChecker] 版本比较失败: {e}")

@@ -113,7 +113,7 @@ function Get-ProjectVersion {
             return $matches[1]
         }
     }
-    return "1.0.0"
+    return "V1.0.0"
 }
 
 # ============================================

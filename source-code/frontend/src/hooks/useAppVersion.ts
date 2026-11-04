@@ -1,20 +1,13 @@
 import { useState, useEffect } from 'react'
 import { bridgeService } from '@/services/bridge'
 
-const DEFAULT_VERSION = 'v0.1.0'
+const DEFAULT_VERSION = 'V1.0.0'
 
 function formatVersion(rawVersion: string): string {
   console.log('[formatVersion] rawVersion:', rawVersion)
+  // 版本号已统一为大写 V 形态，直接展示原值，避免再拼一层 v 出现 vV1.0.0
   const trimmed = rawVersion.trim()
-  if (!trimmed) return DEFAULT_VERSION
-  if (trimmed.startsWith('RC_')) {
-    const versionNum = trimmed.replace('RC_', '')
-    return `v${versionNum}-RC`
-  }
-  if (trimmed.startsWith('v')) {
-    return trimmed
-  }
-  return `v${trimmed}`
+  return trimmed || DEFAULT_VERSION
 }
 
 export function useAppVersion(options?: { enabled?: boolean }) {

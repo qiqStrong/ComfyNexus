@@ -21,6 +21,9 @@ interface ChangelogStore {
 
 const STORAGE_KEY = 'comfyNexus_changelog'
 
+// 版本比较忽略大小写与前导 v/V，避免 V1.0.0 与历史记录的 v1.0.0 被判为不同版本
+const normalizeVersion = (version: string) => version.trim().replace(/^v/i, '').toLowerCase()
+
 export const useChangelogStore = create<ChangelogStore>()(
   persist(
     (set, get) => ({
@@ -41,7 +44,7 @@ export const useChangelogStore = create<ChangelogStore>()(
           return true
         }
         
-        if (lastViewedVersion !== currentVersion) {
+        if (normalizeVersion(lastViewedVersion) !== normalizeVersion(currentVersion)) {
           return true
         }
         
