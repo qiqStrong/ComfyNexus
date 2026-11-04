@@ -844,16 +844,10 @@ def main():
             logger.error(f"[TrayCallback] 恢复窗口失败: {e}")
     
     def tray_exit_app():
-        """托盘退出应用回调"""
+        """托盘退出应用回调（收敛到统一的幂等收尾路径）"""
         try:
-            floating_window_manager.destroy()
-            if hasattr(api, '_comfyui_process') and api._comfyui_process:
-                if api._comfyui_process.is_running:
-                    api._comfyui_process.stop()
-            api._system_monitor_controller.close()
-            system_tray_manager.destroy()
-            window.destroy()
-            logger.info("[TrayCallback] 应用已退出")
+            logger.info("[TrayCallback] 托盘退出请求")
+            _request_exit("tray")
         except Exception as e:
             logger.error(f"[TrayCallback] 退出应用失败: {e}")
     
@@ -903,16 +897,103 @@ def main():
     system_tray_manager.show()
     logger.info("[Main] 托盘图标已创建")
     
-    # 拦截 ALT+F4 等操作系统级别的窗口关闭事件
-    # 使行为与前端 X 按钮一致：根据用户偏好最小化到托盘或退出
-    _is_exiting = False
+    # ===== 退出收尾与关闭语义（唯一实现） =====
+    # 所有退出路径（确认框确认 / closeApp / closing 事件 / 托盘退出 / 超时兜底）
+    # 都收敛到 _shutdown_once，且只向本实例捕获的窗口句柄发 WM_CLOSE。
+    from backend.src.utils.shutdown_once import ShutdownOnce
+
+    shutdown_once = ShutdownOnce(logger)
+    _exit_allowed = False
     _dialog_pending = False
-    
+    _dialog_shown = False
+    _exit_lock = threading.Lock()
+
+    def _stop_comfyui_bounded():
+        """停止 ComfyUI：后台线程 + 最多等 6 秒，避免关闭被长时间卡住"""
+        if not (hasattr(api, '_comfyui_process') and api._comfyui_process):
+            return
+        if not api._comfyui_process.is_running:
+            return
+        thread = threading.Thread(
+            target=api._comfyui_process.stop, daemon=True, name="shutdown-comfyui"
+        )
+        thread.start()
+        thread.join(timeout=6)
+        if thread.is_alive():
+            logger.warning("[_shutdown_once] 停止 ComfyUI 超时（6s），继续退出")
+
+    def _shutdown_once(reason: str) -> bool:
+        """幂等收尾：悬浮窗、托盘、监控、ComfyUI、HTTP"""
+        return shutdown_once.run(reason, (
+            ("floating_window", floating_window_manager.destroy),
+            ("system_tray", system_tray_manager.destroy),
+            ("monitor", api._system_monitor_controller.close),
+            ("comfyui", _stop_comfyui_bounded),
+            ("http_server", http_server.stop),
+        ))
+
+    def _request_exit(reason: str):
+        """确认退出：先幂等收尾，再只向本实例句柄发送 WM_CLOSE"""
+        nonlocal _exit_allowed, _dialog_pending, _dialog_shown
+        with _exit_lock:
+            _exit_allowed = True
+            _dialog_pending = False
+            _dialog_shown = False
+        _shutdown_once(reason)
+
+        from backend.src.utils.window_identity import get_main_window_hwnd
+
+        hwnd = get_main_window_hwnd() or api._get_window_hwnd()
+        if hwnd:
+            try:
+                ctypes.windll.user32.PostMessageW(hwnd, 0x0010, 0, 0)
+                logger.info(f"[退出] 已向本实例窗口发送 WM_CLOSE: hwnd={hwnd} reason={reason}")
+                return
+            except Exception as e:
+                logger.warning(f"[退出] PostMessage 失败，回退 destroy: {e}")
+        try:
+            window.destroy()
+        except Exception as e:
+            logger.warning(f"[退出] window.destroy 失败: {e}")
+
+    def _cancel_close_dialog():
+        """取消关闭 / 最小化到托盘：不退出，窗口保留"""
+        nonlocal _dialog_pending, _dialog_shown
+        with _exit_lock:
+            _dialog_pending = False
+            _dialog_shown = False
+        logger.info("[Closing] 用户取消关闭（或最小化到托盘），窗口保留")
+
+    def _mark_close_dialog_shown():
+        """前端确认框已渲染：关闭超时兜底不再强制退出"""
+        nonlocal _dialog_shown
+        _dialog_shown = True
+        logger.debug("[Closing] 前端确认框已显示")
+
+    def _dialog_timeout_guard():
+        """兜底：4 秒内前端仍未响应确认框，自行收尾并关闭"""
+        nonlocal _exit_allowed, _dialog_pending
+        with _exit_lock:
+            if not _dialog_pending or _exit_allowed or _dialog_shown:
+                return
+            _exit_allowed = True
+            _dialog_pending = False
+        logger.warning("[Closing] 4 秒内前端未响应确认框，自行收尾并关闭")
+        _request_exit("dialog_timeout")
+
+    api.set_exit_request_handler(_request_exit)
+    api.set_close_dialog_handlers(on_cancel=_cancel_close_dialog, on_shown=_mark_close_dialog_shown)
+
+    # 拦截 ALT+F4 等操作系统级别的窗口关闭事件
+    # 使行为与前端 X 按钮一致：弹确认框 / 按用户已记住的偏好处理
     def on_window_closing():
-        nonlocal _is_exiting, _dialog_pending
-        if _is_exiting or _dialog_pending or api._app_exit_requested:
+        nonlocal _dialog_pending, _dialog_shown, _exit_allowed
+        if _exit_allowed:
             return True
-        
+        if _dialog_pending:
+            logger.info("[Closing] 确认框处理中，本次关闭事件已忽略")
+            return False
+
         try:
             result = api._settings_manager.get_settings()
             if result.get("success"):
@@ -921,30 +1002,30 @@ def main():
                 action = behavior.get("action")
                 dont_ask = behavior.get("dontAskAgain", False)
                 
-                if dont_ask and action:
-                    if action == "minimize":
-                        if not system_tray_manager.is_running:
-                            system_tray_manager.show()
-                        window.hide()
-                        return False
-                    else:
-                        _is_exiting = True
-                        floating_window_manager.destroy()
-                        if hasattr(api, '_comfyui_process') and api._comfyui_process:
-                            if api._comfyui_process.is_running:
-                                api._comfyui_process.stop()
-                        api._system_monitor_controller.close()
-                        system_tray_manager.destroy()
-                        return True
+                if dont_ask and action == "minimize":
+                    if not system_tray_manager.is_running:
+                        system_tray_manager.show()
+                    window.hide()
+                    logger.info("[Closing] 按已记住的偏好最小化到托盘")
+                    return False
+                if dont_ask and action == "close":
+                    with _exit_lock:
+                        _exit_allowed = True
+                    _shutdown_once("closing.remembered_close")
+                    return True
             
-            _dialog_pending = True
-            _is_exiting = True
+            with _exit_lock:
+                _dialog_pending = True
+                _dialog_shown = False
             threading.Timer(0.1, lambda: window.evaluate_js(
                 'window.triggerCloseDialog && window.triggerCloseDialog()'
             )).start()
+            threading.Timer(4.0, _dialog_timeout_guard).start()
             return False
         except Exception as e:
             logger.error(f"[Closing] 处理关闭事件失败: {e}")
+            # 异常时不再静默吞掉关闭：做幂等收尾后允许关闭
+            _shutdown_once("closing.error")
             return True
     
     window.events.closing += on_window_closing
@@ -1092,7 +1173,6 @@ def main():
             logger.debug(traceback.format_exc())
     
     # 在后台线程中重置窗口状态（不阻塞主线程）
-    import threading
     threading.Thread(target=reset_window_state, daemon=True).start()
     
     # 定义 webview 启动后的回调函数
@@ -1100,6 +1180,13 @@ def main():
     
     def on_webview_ready():
         """webview 启动后创建悬浮窗（仅当配置开启时）并启动健康检查"""
+        # 窗口创建后立即捕获本实例自有句柄：后续所有关闭动作只认它
+        from backend.src.utils.window_identity import capture_main_window_hwnd
+
+        main_hwnd = capture_main_window_hwnd(window)
+        if not main_hwnd:
+            logger.warning("[on_webview_ready] 未能捕获本实例窗口句柄，关闭动作将回退为 window.destroy()")
+
         # 在 webview 完全初始化后应用 OpenFolderDialog monkey-patch
         # 必须在 webview.start() 之后调用，因为此时 forced_gui_ 和
         # WEBVIEW2_RUNTIME_PATH 才已正确设置，is_chromium 已被正确评估
@@ -1121,11 +1208,6 @@ def main():
                 logger.warning(f"[on_webview_ready] 应用窗口图标失败: {e}")
 
         if floating_window_needs_show:
-            from backend.src.utils.window_bounds import find_window_by_title
-
-            max_retries = 5
-            main_hwnd = find_window_by_title("Comfyui-Box", max_retries=max_retries, retry_interval=0.1) or 0
-
             if main_hwnd:
                 floating_window_manager.set_main_hwnd(main_hwnd)
                 logger.debug(f"[on_webview_ready] 主窗口句柄: {main_hwnd}")
@@ -1186,6 +1268,8 @@ def main():
                 except Exception as e2:
                     logger.error(f"[健康检查] 重启应用失败: {e2}")
         
+            # 安全模式重启前先做幂等收尾，避免残留托盘/悬浮窗/ComfyUI 进程
+            _shutdown_once("safe_mode_restart")
             os._exit(0)
         
         _health_check_thread = threading.Thread(target=health_check, daemon=False)
@@ -1226,28 +1310,13 @@ def main():
     if _health_check_thread is not None and _health_check_thread.is_alive():
         _health_check_thread.join(timeout=15)
     
-    http_server.stop()
-    
-    # 安全清理：如果 closing handler 已处理则跳过
-    if not _is_exiting:
-        try:
-            floating_window_manager.destroy()
-        except Exception:
-            pass
-        try:
-            if hasattr(api, '_comfyui_process') and api._comfyui_process:
-                if api._comfyui_process.is_running:
-                    api._comfyui_process.stop()
-        except Exception:
-            pass
-        try:
-            api._system_monitor_controller.close()
-        except Exception:
-            pass
-        try:
-            system_tray_manager.destroy()
-        except Exception:
-            pass
+    # 退出收尾统一走幂等实现（closing handler / closeApp 已做过则自动跳过）
+    _shutdown_once("webview_stopped")
+    try:
+        from backend.src.utils.window_identity import clear_main_window_hwnd
+        clear_main_window_hwnd()
+    except Exception as e:
+        logger.warning(f"[Main] 清理窗口句柄记录失败: {e}")
     
     if instance_manager:
         instance_manager.release()

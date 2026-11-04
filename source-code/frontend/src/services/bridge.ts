@@ -161,6 +161,20 @@ class BridgeService implements EnvironmentAPI {
   }
 
   /**
+   * Cancel pending close: reset backend dialog state, keep window open
+   */
+  async cancelClose(): Promise<{ success: boolean; message?: string }> {
+    return this.callApi<{ success: boolean; message?: string }>('cancelClose');
+  }
+
+  /**
+   * Notify backend that the close confirm dialog has been rendered
+   */
+  async notifyCloseDialogShown(): Promise<{ success: boolean; message?: string }> {
+    return this.callApi<{ success: boolean; message?: string }>('notifyCloseDialogShown');
+  }
+
+  /**
    * Maximize app
    */
   async maximizeApp() {

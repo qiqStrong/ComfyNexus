@@ -44,7 +44,10 @@ class Api:
         self._dependencies_update_started = False
         self._dpi_scale = 1.0
         self._frontend_heartbeat_received = False
-        self._app_exit_requested = False
+        # 关闭确认框 / 退出收尾钩子（由 main.py 注册，保证所有路径收敛到 _shutdown_once）
+        self._exit_request_handler = None
+        self._close_dialog_cancel_handler = None
+        self._close_dialog_shown_handler = None
         
         # 直接初始化所有控制器 - 使用私有属性命名
         from backend.src.core.config import ModuleConfigManager
@@ -159,17 +162,35 @@ class Api:
         （属于 explorer 进程），消息发过去静默无效。所以只认 native Form 的句柄，
         兜底也必须枚举本进程自己的顶层窗口，不能只按标题取第一个匹配。
         """
+        # 本实例句柄在窗口创建后即被捕获并存入模块级变量，关闭动作只认它
+        from backend.src.utils.window_identity import get_main_window_hwnd
+
+        hwnd = get_main_window_hwnd()
+        if hwnd:
+            return hwnd
+
         if self._window is None:
             return 0
 
         try:
-            return int(self._window.native.Handle.ToInt32())
+            handle = self._window.native.Handle
+            hwnd = int(handle.ToInt32() if hasattr(handle, "ToInt32") else handle)
         except Exception:
-            pass
+            hwnd = 0
 
+        if hwnd:
+            from backend.src.utils.window_identity import set_main_window_hwnd
+            set_main_window_hwnd(hwnd)
+            return hwnd
+
+        # 兜底仍只枚举本进程自己的窗口（不跨进程、不用 FindWindowW）
         try:
             from backend.src.utils.window_bounds import find_window_by_title
-            return find_window_by_title("Comfyui-Box", max_retries=1, retry_interval=0) or 0
+            hwnd = find_window_by_title("Comfyui-Box", max_retries=1, retry_interval=0, exclude=("Floating",)) or 0
+            if hwnd:
+                from backend.src.utils.window_identity import set_main_window_hwnd
+                set_main_window_hwnd(hwnd)
+            return hwnd
         except Exception as e:
             logger.debug(f"[_get_window_hwnd] 兜底查找句柄失败: {e}")
             return 0
@@ -407,9 +428,53 @@ class Api:
             logger.error(f"[setCloseBehavior] 保存关闭行为设置失败: {str(e)}")
             return {"success": False, "message": str(e)}
     
+    def set_exit_request_handler(self, handler):
+        """注册退出收尾函数（main.py 的 _request_exit，内部使用）"""
+        self._exit_request_handler = handler
+
+    def set_close_dialog_handlers(self, on_cancel=None, on_shown=None):
+        """注册关闭确认框回调（取消 / 已显示）"""
+        self._close_dialog_cancel_handler = on_cancel
+        self._close_dialog_shown_handler = on_shown
+
+    def notifyCloseDialogShown(self):
+        """前端确认框已渲染（后端超时兜底据此判断 JS 是否无响应）"""
+        try:
+            if self._close_dialog_shown_handler:
+                self._close_dialog_shown_handler()
+            return {"success": True}
+        except Exception as e:
+            logger.warning(f"[notifyCloseDialogShown] 回调失败: {e}")
+            return {"success": False, "message": str(e)}
+
+    def cancelClose(self):
+        """用户取消关闭（点取消 / 关闭确认框）"""
+        try:
+            if self._close_dialog_cancel_handler:
+                self._close_dialog_cancel_handler()
+            logger.info("[cancelClose] 已取消关闭，窗口保留")
+            return {"success": True}
+        except Exception as e:
+            logger.warning(f"[cancelClose] 取消失败: {e}")
+            return {"success": False, "message": str(e)}
+
     def closeApp(self):
-        """关闭应用"""
-        self._app_exit_requested = True
+        """关闭当前实例（只关自己：本窗口、本进程、自己的托盘与 ComfyUI）"""
+        logger.info("[closeApp] 开始执行")
+        try:
+            if self._exit_request_handler:
+                # 收敛到 main.py 的 _shutdown_once（销毁悬浮窗/托盘/监控/ComfyUI/HTTP）
+                self._exit_request_handler("closeApp")
+            else:
+                self._close_app_fallback()
+            logger.info("[closeApp] 执行完毕")
+            return {"success": True}
+        except Exception as e:
+            logger.error(f"[closeApp] 执行失败: {e}")
+            return {"success": False, "message": str(e)}
+
+    def _close_app_fallback(self):
+        """未注册收尾钩子时的兜底关闭（脚本/测试场景）"""
         try:
             from backend.src.ui import floating_window_manager
             floating_window_manager.destroy()
@@ -448,7 +513,6 @@ class Api:
             except Exception as e:
                 logger.warning(f"[closeApp] PostMessage 关闭失败，回退 destroy: {e}")
                 self._window.destroy()
-        logger.info("[closeApp] 执行完毕")
     
     def minimizeApp(self):
         """最小化应用"""
@@ -484,8 +548,10 @@ class Api:
             logger.debug("[最小化] 窗口已最小化")
     
     def minimizeToTray(self):
-        """最小化到系统托盘（隐藏窗口）"""
+        """最小化到系统托盘（隐藏窗口），不退出"""
         try:
+            if self._close_dialog_cancel_handler:
+                self._close_dialog_cancel_handler()
             from backend.src.ui import system_tray_manager
             
             if not system_tray_manager.is_running:

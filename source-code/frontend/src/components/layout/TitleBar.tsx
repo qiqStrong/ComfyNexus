@@ -399,6 +399,23 @@ export function TitleBar() {
     }
   }
 
+  // 确认框渲染完成后通知后端，避免超时兜底误关
+  useEffect(() => {
+    if (showCloseConfirm) {
+      bridgeService.notifyCloseDialogShown().catch((err) => {
+        console.warn('[TitleBar] notifyCloseDialogShown failed:', err)
+      })
+    }
+  }, [showCloseConfirm])
+
+  const handleCloseCancel = async () => {
+    try {
+      await bridgeService.cancelClose()
+    } catch (error) {
+      console.error('[TitleBar] Failed to cancel close:', error)
+    }
+  }
+
   // 注册全局关闭对话框函数，供后端 ALT+F4 拦截时调用
   useEffect(() => {
     window.triggerCloseDialog = handleClose
@@ -877,6 +894,7 @@ export function TitleBar() {
         onOpenChange={setShowCloseConfirm}
         onClose={handleCloseConfirm}
         onMinimize={handleMinimizeConfirm}
+        onCancel={handleCloseCancel}
       />
 
       {/* 环境悬停卡片 */}

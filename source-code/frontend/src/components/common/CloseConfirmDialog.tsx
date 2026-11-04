@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X, Minimize2 } from 'lucide-react'
 import {
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 
 interface CloseConfirmDialogProps {
@@ -17,6 +18,7 @@ interface CloseConfirmDialogProps {
   onOpenChange: (open: boolean) => void
   onClose: (dontAskAgain: boolean) => void
   onMinimize: (dontAskAgain: boolean) => void
+  onCancel: () => void
 }
 
 export function CloseConfirmDialog({
@@ -24,18 +26,36 @@ export function CloseConfirmDialog({
   onOpenChange,
   onClose,
   onMinimize,
+  onCancel,
 }: CloseConfirmDialogProps) {
   const { t } = useTranslation()
   const [dontAskAgain, setDontAskAgain] = useState(false)
+  // 已选择“关闭应用”或“最小化到托盘”时，随后的关闭弹框不再当作“取消”
+  const actionTakenRef = useRef(false)
 
   useEffect(() => {
     if (open) {
       setDontAskAgain(false)
+      actionTakenRef.current = false
     }
   }, [open])
 
+  const handleOpenChange = (next: boolean) => {
+    if (!next && !actionTakenRef.current) {
+      onCancel()
+    }
+    onOpenChange(next)
+  }
+
+  const handleCancel = () => {
+    actionTakenRef.current = true
+    onCancel()
+    onOpenChange(false)
+  }
+
   const handleCloseApp = () => {
     console.log('[CloseConfirmDialog] handleCloseApp called, dontAskAgain:', dontAskAgain)
+    actionTakenRef.current = true
     onOpenChange(false)
     console.log('[CloseConfirmDialog] onOpenChange(false) called, onClose next')
     onClose(dontAskAgain)
@@ -43,12 +63,13 @@ export function CloseConfirmDialog({
   }
 
   const handleMinimizeToTray = () => {
+    actionTakenRef.current = true
     onOpenChange(false)
     onMinimize(dontAskAgain)
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[420px] p-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="text-lg font-semibold">
@@ -103,7 +124,7 @@ export function CloseConfirmDialog({
           </button>
         </div>
 
-        <div className="px-6 py-4 bg-muted/30 border-t border-border">
+        <div className="px-6 py-4 bg-muted/30 border-t border-border flex items-center justify-between gap-3">
           <Label className="flex cursor-pointer items-center gap-2.5 select-none">
             <Checkbox
               checked={dontAskAgain}
@@ -113,6 +134,9 @@ export function CloseConfirmDialog({
               {t('titleBar.window.dontShowAgainHint')}
             </span>
           </Label>
+          <Button variant="secondary" size="sm" onClick={handleCancel}>
+            {t('common.cancel')}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
