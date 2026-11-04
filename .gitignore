@@ -218,3 +218,8 @@ __marimo__/
 
 # 运行环境检测工具解压产物（ComfyNexusDiag.exe 由 backend/scripts/diagnose_system.py + ComfyNexusDiag.spec 构建，不入库）
 ComfyNexus运行环境检测/
+
+# 运行期数据（用户提示词库索引与示意图，属本机状态，不入库）
+# 只忽略该目录下的 json，data/prompt/images/ 里需要入库的提示词示意图不受影响
+/source-code/data/prompt/*.json
+/wx.png
