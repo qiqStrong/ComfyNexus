@@ -1,4 +1,4 @@
-# ComfyNexus Runtime 包构建脚本
+# Comfyui-Box Runtime 包构建脚本
 # 用途: 下载并打包完整运行时依赖，供精简版 Windows 用户使用
 # 使用: .\构建runtime包.ps1 [-OutputDir <输出目录>]
 #
@@ -8,7 +8,7 @@
 #   ├── dotnet8/         ← .NET 8 Desktop Runtime (~60-80MB)
 #   └── vcruntime/       ← VC++ Runtime 2015-2022 (~2MB)
 #
-# 用户只需将此包解压到 ComfyNexus 安装目录（与 ComfyNexus.exe 同级）即可
+# 用户只需将此包解压到 Comfyui-Box 安装目录（与 Comfyui-Box.exe 同级）即可
 
 param(
     [string]$OutputDir = "",
@@ -89,7 +89,7 @@ if (-not $OutputDir) {
 $runtimeDir = Join-Path $OutputDir "runtime"
 $tempDir = Join-Path $OutputDir "runtime_temp"
 
-Write-Step "ComfyNexus Runtime 包构建"
+Write-Step "Comfyui-Box Runtime 包构建"
 
 Write-Host "  项目根目录: $projectRoot"
 Write-Host "  输出目录: $OutputDir"
@@ -361,7 +361,7 @@ if (Test-Path $tempDir) {
 
 Write-Step "打包 Runtime 补丁包"
 
-$zipFileName = "ComfyNexus_Runtime_Patch.zip"
+$zipFileName = "Comfyui-Box_Runtime_Patch.zip"
 $zipPath = Join-Path $OutputDir $zipFileName
 
 if (Test-Path $runtimeDir) {
@@ -422,9 +422,9 @@ if ($allOk) {
     Write-Host ""
     Write-Host "  使用方法:" -ForegroundColor White
     Write-Host "  1. 将 $zipFileName 下载到本地" -ForegroundColor Gray
-    Write-Host "  2. 解压到 ComfyNexus 安装目录（与 ComfyNexus.exe 同级）" -ForegroundColor Gray
+    Write-Host "  2. 解压到 Comfyui-Box 安装目录（与 Comfyui-Box.exe 同级）" -ForegroundColor Gray
     Write-Host "  3. 解压后应出现 runtime/ 目录" -ForegroundColor Gray
-    Write-Host "  4. 重新启动 ComfyNexus 即可" -ForegroundColor Gray
+    Write-Host "  4. 重新启动 Comfyui-Box 即可" -ForegroundColor Gray
 }
 else {
     Write-Err "Runtime 包构建不完整，请检查上方错误信息"

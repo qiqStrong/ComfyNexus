@@ -44,13 +44,13 @@ export function AboutHeader({ version }: AboutHeaderProps) {
         <div className="flex items-start gap-4">
           <img
             src="/app-icon.png"
-            alt="ComfyNexus"
+            alt="Comfyui-Box"
             className="size-14"
           />
           <div className="flex flex-col">
             <div className="mb-1 flex items-center gap-3">
               <h1 className="text-2xl font-bold tracking-wide text-foreground">
-                ComfyNexus
+                Comfyui-Box
               </h1>
               <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary">
                 {version}
@@ -58,7 +58,7 @@ export function AboutHeader({ version }: AboutHeaderProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => window.open('https://github.com/qiqStrong/ComfyNexus', '_blank', 'noopener,noreferrer')}
+                onClick={() => window.open('https://github.com/qiqStrong/Comfyui-Box', '_blank', 'noopener,noreferrer')}
                 className="size-7 rounded-md"
                 title="GitHub"
               >

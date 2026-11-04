@@ -95,7 +95,7 @@ export const AssetCard = forwardRef<HTMLDivElement, AssetCardProps>(
           const iframe = document.querySelector('iframe[title="ComfyUI Workspace"]') as HTMLIFrameElement
           if (iframe?.contentWindow) {
             iframe.contentWindow.postMessage({
-              type: 'comfynexus:add_load_image_node',
+              type: 'comfyui-box:add_load_image_node',
               data: { filename: result.filename }
             }, '*')
           }

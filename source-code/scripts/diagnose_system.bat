@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 echo ============================================================
-echo          ComfyNexus 系统环境诊断工具
+echo          Comfyui-Box 系统环境诊断工具
 echo ============================================================
 echo.
 

@@ -1,4 +1,4 @@
-# ComfyNexus 后端打包脚本
+# Comfyui-Box 后端打包脚本
 # 用途: 只打包后端（需要先构建前端）
 # 使用方法: .\build_backend.ps1 [-Version "1.0.2"] [-Clean]
 
@@ -30,7 +30,7 @@ $BuildOutputDir = Join-Path $PSScriptRoot "打包产物_$Version"
 $DistDir = Join-Path $BuildOutputDir "dist"
 $BuildDir = Join-Path $BuildOutputDir "build"
 
-Write-Host "ComfyNexus 后端打包" -ForegroundColor Cyan
+Write-Host "Comfyui-Box 后端打包" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "版本: $Version" -ForegroundColor Yellow
 Write-Host "构建产物目录: $BuildOutputDir" -ForegroundColor Yellow
@@ -85,10 +85,10 @@ try {
     Write-Host "✓ 后端打包完成" -ForegroundColor Green
     
     # 显示 exe 信息
-    $ExePath = Join-Path $DistDir "ComfyNexus.exe"
+    $ExePath = Join-Path $DistDir "Comfyui-Box.exe"
     if (Test-Path $ExePath) {
         $ExeSize = (Get-Item $ExePath).Length / 1MB
-        Write-Host "exe 文件: ComfyNexus.exe ($([math]::Round($ExeSize, 2)) MB)" -ForegroundColor Blue
+        Write-Host "exe 文件: Comfyui-Box.exe ($([math]::Round($ExeSize, 2)) MB)" -ForegroundColor Blue
         Write-Host "路径: $ExePath" -ForegroundColor Blue
     }
     

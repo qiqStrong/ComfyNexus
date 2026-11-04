@@ -91,7 +91,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     
     // 保存到 localStorage
     const newSettings = { ...get().versionSettings, ...settings }
-    localStorage.setItem('comfynexus-version-settings', JSON.stringify(newSettings))
+    localStorage.setItem('comfyui-box-version-settings', JSON.stringify(newSettings))
   },
   
   // 更新系统设置（后端文件）
@@ -223,7 +223,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
       }
       
       // 从 localStorage 加载版本设置
-      const versionSettingsStr = localStorage.getItem('comfynexus-version-settings')
+      const versionSettingsStr = localStorage.getItem('comfyui-box-version-settings')
       if (versionSettingsStr) {
         try {
           const versionSettings = JSON.parse(versionSettingsStr)
@@ -249,6 +249,6 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     
     // 保存到 localStorage
     const newSettings = { ...get().versionSettings, showDevWarning: true }
-    localStorage.setItem('comfynexus-version-settings', JSON.stringify(newSettings))
+    localStorage.setItem('comfyui-box-version-settings', JSON.stringify(newSettings))
   },
 }))

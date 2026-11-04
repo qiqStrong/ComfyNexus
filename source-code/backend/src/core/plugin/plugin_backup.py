@@ -29,7 +29,7 @@ BACKUP_EXCLUDE_PATTERNS = [
     'Thumbs.db',      # Windows 缩略图缓存
 ]
 
-BACKUP_DIR_NAME = 'ComfyNexus_Plugin_Backups'
+BACKUP_DIR_NAME = 'Comfyui-Box_Plugin_Backups'
 MAX_BACKUP_COUNT = 10  # 保留最近10个备份
 
 

@@ -375,7 +375,7 @@ class PyPIMirrorSpeedTester:
             start_time = time.time()
             response = requests.get(
                 test_url,
-                headers={"User-Agent": "ComfyNexus/1.0"},
+                headers={"User-Agent": "Comfyui-Box/1.0"},
                 timeout=15,
                 stream=True,
             )

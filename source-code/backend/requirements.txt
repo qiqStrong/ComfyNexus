@@ -1,4 +1,4 @@
-# ComfyNexus Backend Dependencies
+# Comfyui-Box Backend Dependencies
 # Python 3.12.x
 
 # GUI Framework

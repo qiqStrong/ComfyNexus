@@ -756,7 +756,7 @@ class PresetManager:
                 "metadata": {
                     "version": "1.0.0",
                     "exported_at": __import__('datetime').datetime.now().isoformat(),
-                    "note": "此预设文件包含ComfyUI的详细配置参数，可以导入到ComfyNexus中使用"
+                    "note": "此预设文件包含ComfyUI的详细配置参数，可以导入到Comfyui-Box中使用"
                 }
             }
             

@@ -1,4 +1,4 @@
-# ComfyNexus 前端构建脚本
+# Comfyui-Box 前端构建脚本
 # 用途: 只构建前端
 # 使用方法: .\build_frontend.ps1
 
@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $FrontendDir = Join-Path $ProjectRoot "frontend"
 
-Write-Host "ComfyNexus 前端构建" -ForegroundColor Cyan
+Write-Host "Comfyui-Box 前端构建" -ForegroundColor Cyan
 Write-Host ""
 
 try {

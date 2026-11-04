@@ -1,5 +1,5 @@
 """
-ComfyNexus 系统依赖诊断工具 v2.2 (Win10/Win11 专版)
+Comfyui-Box 系统依赖诊断工具 v2.2 (Win10/Win11 专版)
 整合了 DLL 检测、Python 包实际调用测试、运行时模拟测试。
 自动运行所有测试，无需交互。
 
@@ -7,7 +7,7 @@ ComfyNexus 系统依赖诊断工具 v2.2 (Win10/Win11 专版)
   python diagnose_system.py
 
 打包建议 (强烈建议使用 64位 Python 环境打包，防止文件系统重定向导致误报)：
-  pyinstaller --onefile --console --name ComfyNexusDiag --clean diagnose_system.py
+  pyinstaller --onefile --console --name Comfyui-BoxDiag --clean diagnose_system.py
 """
 
 import ctypes
@@ -221,9 +221,9 @@ class DLLChecker:
             self.report_lines.append(f'  [PASS] WebView2 Runtime 已安装 (版本: {version})')
         else:
             self.total_failed += 1
-            result.add_fail('WebView2 Runtime', 'WebView2 Runtime 未安装', 'ComfyNexus GUI 界面无法显示，应用将无法启动', '下载: https://go.microsoft.com/fwlink/p/?LinkId=2124703')
+            result.add_fail('WebView2 Runtime', 'WebView2 Runtime 未安装', 'Comfyui-Box GUI 界面无法显示，应用将无法启动', '下载: https://go.microsoft.com/fwlink/p/?LinkId=2124703')
             cprint(f'  [FAIL] WebView2 Runtime 未安装!', ConsoleColors.red)
-            cprint(f'  影响: ComfyNexus GUI 界面无法显示，应用将无法启动', ConsoleColors.red)
+            cprint(f'  影响: Comfyui-Box GUI 界面无法显示，应用将无法启动', ConsoleColors.red)
             cprint(f'  修复: https://go.microsoft.com/fwlink/p/?LinkId=2124703', ConsoleColors.yellow)
 
     def _check_group1_directx(self):
@@ -390,9 +390,9 @@ class PackageCallTester:
             test_icon = Image.new('RGBA', (64, 64), color=(59, 130, 246, 255))
             
             icon = pystray.Icon(
-                'ComfyNexusDiag_Test',
+                'Comfyui-BoxDiag_Test',
                 test_icon,
-                'ComfyNexus 诊断测试',
+                'Comfyui-Box 诊断测试',
                 menu=pystray.Menu(
                     pystray.MenuItem('测试菜单项', lambda icon, item: None),
                 )
@@ -620,7 +620,7 @@ class PackageCallTester:
 
 
 class RuntimeTester:
-    """运行时模拟测试器 - 模拟 ComfyNexus 的窗口操作"""
+    """运行时模拟测试器 - 模拟 Comfyui-Box 的窗口操作"""
 
     def __init__(self):
         self.total_tests = 0
@@ -825,7 +825,7 @@ def print_final_report():
     """打印最终诊断报告"""
     print()
     cprint('=' * 70, ConsoleColors.cyan)
-    cprint('                    ComfyNexus 诊断报告', ConsoleColors.cyan)
+    cprint('                    Comfyui-Box 诊断报告', ConsoleColors.cyan)
     cprint('=' * 70, ConsoleColors.cyan)
     
     total_passed = result.passed_count
@@ -865,13 +865,13 @@ def main():
     if win_ver.major < 10:
         kernel32.GetStdHandle(-11)
         cprint(f'\n[FATAL ERROR] 您的系统版本为 Windows {win_ver.major}.{win_ver.minor}。', ConsoleColors.red)
-        cprint(f'ComfyNexus 及其诊断工具已停止对 Windows 10 以下版本的支持。', ConsoleColors.red)
+        cprint(f'Comfyui-Box 及其诊断工具已停止对 Windows 10 以下版本的支持。', ConsoleColors.red)
         cprint(f'请升级到 Windows 10 或 Windows 11 后再试。', ConsoleColors.red)
         input("\n按回车键退出...")
         return
 
     cprint(f'\n{"=" * 70}', ConsoleColors.cyan)
-    cprint('           ComfyNexus 深度诊断工具 v2.2', ConsoleColors.cyan)
+    cprint('           Comfyui-Box 深度诊断工具 v2.2', ConsoleColors.cyan)
     cprint(f'{"=" * 70}', ConsoleColors.cyan)
     cprint(f'  系统版本: Windows {win_ver.major}.{win_ver.minor} (Build {win_ver.build})', ConsoleColors.white)
     cprint(f'  诊断时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', ConsoleColors.white)

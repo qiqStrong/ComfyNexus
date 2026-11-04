@@ -47,7 +47,7 @@ export interface SystemMonitorData {
  */
 export interface ComfyUIStatus {
   isRunning: boolean         // 是否正在运行
-  isExternal?: boolean       // 是否是外部进程（不受 ComfyNexus 管理）
+  isExternal?: boolean       // 是否是外部进程（不受 Comfyui-Box 管理）
   pid?: number               // 进程ID
   envId?: string             // 环境ID（运行时的环境）
   port?: number              // 运行端口

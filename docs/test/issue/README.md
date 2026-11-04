@@ -133,7 +133,7 @@
 | 数据前后对比 | 数据问题必填 | 视情况 |
 | 接口响应/桥返回 | 接口问题必填 | 视情况 |
 
-日志默认位置：`<项目根>/logs/comfynexus_YYYYMMDD_HHMMSS.log`（打包环境为 exe 同级 `logs`，以实际为准）。
+日志默认位置：`<项目根>/logs/comfyui-box_YYYYMMDD_HHMMSS.log`（打包环境为 exe 同级 `logs`，以实际为准）。
 
 ## 7. 与测试用例的对应
 

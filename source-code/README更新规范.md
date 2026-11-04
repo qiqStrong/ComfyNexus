@@ -313,4 +313,4 @@ A: 问自己：这个变更是否让用户能做之前做不到的事？如果�
 **规范版本**：1.1.0（2026-11-01 文档真相审计后：新增"文档事实来源/事实性要求"、修正标题格式与实际 README 的偏差、澄清 `Last verified` 与"版本信息"禁令的关系、指出 `更新日志/` 目录实际不存在）
 **创建日期**：2026-02-01
 **Last verified**：2026-11-01（对照 commit `6e3c986`）
-**适用范围**：ComfyNexus 项目 `README.md`（仓库根）与 `source-code/README.md` 文档
+**适用范围**：Comfyui-Box 项目 `README.md`（仓库根）与 `source-code/README.md` 文档

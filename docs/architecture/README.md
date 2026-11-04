@@ -1,6 +1,6 @@
 # 架构文档 · 索引
 
-ComfyNexus 现状架构基线与 Phase 1 风险登记。生成于 2026-11-01，对应提交 `88bdb15`（分支 `fix/security-hardening`，与 `chore/baseline` 同指）。
+Comfyui-Box 现状架构基线与 Phase 1 风险登记。生成于 2026-11-01，对应提交 `88bdb15`（分支 `fix/security-hardening`，与 `chore/baseline` 同指）。
 
 ## 文件清单
 

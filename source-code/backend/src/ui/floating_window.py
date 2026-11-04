@@ -49,7 +49,7 @@ class FloatingWindowManager:
             return
         try:
             user32 = ctypes.windll.user32
-            hwnd = user32.FindWindowW(None, "ComfyNexus Floating")
+            hwnd = user32.FindWindowW(None, "Comfyui-Box Floating")
             if not hwnd:
                 return
             rect = ctypes.wintypes.RECT()
@@ -109,7 +109,7 @@ class FloatingWindowManager:
                     break
                 
                 try:
-                    hwnd = ctypes.windll.user32.FindWindowW(None, "ComfyNexus Floating")
+                    hwnd = ctypes.windll.user32.FindWindowW(None, "Comfyui-Box Floating")
                     if hwnd:
                         GWL_EXSTYLE = -20
                         WS_EX_TOOLWINDOW = 0x00000080
@@ -243,7 +243,7 @@ class FloatingWindowManager:
             self._waiting_for_ready = True
             
             self._window = webview.create_window(
-                'ComfyNexus Floating',
+                'Comfyui-Box Floating',
                 url=f'{base_url}/floating.html',
                 width=logical_width,
                 height=logical_height,
@@ -277,7 +277,7 @@ class FloatingWindowManager:
             
             hwnd = 0
             for _ in range(10):
-                hwnd = user32.FindWindowW(None, "ComfyNexus Floating")
+                hwnd = user32.FindWindowW(None, "Comfyui-Box Floating")
                 if hwnd:
                     break
                 time.sleep(0.1)
@@ -347,7 +347,7 @@ class FloatingWindowManager:
                 hwnd = 0
                 
                 for attempt in range(max_retries):
-                    hwnd = user32.FindWindowW(None, "ComfyNexus Floating")
+                    hwnd = user32.FindWindowW(None, "Comfyui-Box Floating")
                     if hwnd:
                         break
                     time.sleep(0.05)
@@ -396,7 +396,7 @@ class FloatingWindowManager:
             logger.dev(f"[FloatingWindowManager] 已移动到目标位置：({self._target_x}, {self._target_y})")
             
             user32 = ctypes.windll.user32
-            hwnd = user32.FindWindowW(None, "ComfyNexus Floating")
+            hwnd = user32.FindWindowW(None, "Comfyui-Box Floating")
             if hwnd:
                 rect = ctypes.wintypes.RECT()
                 user32.GetWindowRect(hwnd, ctypes.pointer(rect))
@@ -405,12 +405,12 @@ class FloatingWindowManager:
                 logger.info(f"[FloatingWindowManager] 窗口实际物理尺寸: {actual_width}x{actual_height}")
             
             if not self._initial_hidden:
-                hwnd = user32.FindWindowW(None, "ComfyNexus Floating")
+                hwnd = user32.FindWindowW(None, "Comfyui-Box Floating")
                 if hwnd:
                     self._apply_toolwindow_style_internal(hwnd)
                 self._window.show()
                 self._visible = True
-                hwnd_after = user32.FindWindowW(None, "ComfyNexus Floating")
+                hwnd_after = user32.FindWindowW(None, "Comfyui-Box Floating")
                 if hwnd_after:
                     self._apply_toolwindow_style_internal(hwnd_after)
                 logger.info("[FloatingWindowManager] 悬浮窗已归位并显示")
@@ -490,7 +490,7 @@ class FloatingWindowManager:
                     logger.debug(f"[FloatingWindowManager] 检测到窗口放大，强制刷新透明层")
                     self._window.hide()
                     self._window.show()
-                    hwnd = ctypes.windll.user32.FindWindowW(None, "ComfyNexus Floating")
+                    hwnd = ctypes.windll.user32.FindWindowW(None, "Comfyui-Box Floating")
                     if hwnd:
                         self._apply_toolwindow_style_internal(hwnd)
                     

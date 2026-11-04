@@ -1,10 +1,10 @@
 #Requires -Version 5.1
-# ComfyNexus Diagnostic Script for Packaged Environment
+# Comfyui-Box Diagnostic Script for Packaged Environment
 
-$Host.UI.RawUI.WindowTitle = "ComfyNexus Diagnostic Tool"
+$Host.UI.RawUI.WindowTitle = "Comfyui-Box Diagnostic Tool"
 
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "   ComfyNexus Diagnostic Tool for Packaged Environment" -ForegroundColor Cyan
+Write-Host "   Comfyui-Box Diagnostic Tool for Packaged Environment" -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -24,7 +24,7 @@ if (Test-Path $internalDir) {
     Write-Host "  [OK] _internal directory exists" -ForegroundColor Green
 } else {
     Write-Host "  [ERROR] _internal directory not found" -ForegroundColor Red
-    Write-Host "         Please place this script next to ComfyNexus.exe" -ForegroundColor Red
+    Write-Host "         Please place this script next to Comfyui-Box.exe" -ForegroundColor Red
     $issues += "_internal directory not found"
 }
 Write-Host ""
@@ -142,7 +142,7 @@ Write-Host "============================================================" -Foreg
 Write-Host ""
 
 if ($issues.Count -eq 0 -and $warnings.Count -eq 0) {
-    Write-Host "[OK] All checks passed, ComfyNexus should work correctly" -ForegroundColor Green
+    Write-Host "[OK] All checks passed, Comfyui-Box should work correctly" -ForegroundColor Green
 } else {
     if ($issues.Count -gt 0) {
         Write-Host "Issues found:" -ForegroundColor Red
@@ -160,10 +160,10 @@ if ($issues.Count -eq 0 -and $warnings.Count -eq 0) {
     }
 }
 
-Write-Host "If ComfyNexus fails to start, try:" -ForegroundColor White
+Write-Host "If Comfyui-Box fails to start, try:" -ForegroundColor White
 Write-Host "  1. Install WebView2 Runtime (recommended)" -ForegroundColor Gray
 Write-Host "  2. Install Visual C++ Redistributable" -ForegroundColor Gray
-Write-Host "  3. Run ComfyNexus.exe as Administrator" -ForegroundColor Gray
+Write-Host "  3. Run Comfyui-Box.exe as Administrator" -ForegroundColor Gray
 Write-Host "  4. Check antivirus software" -ForegroundColor Gray
 Write-Host ""
 

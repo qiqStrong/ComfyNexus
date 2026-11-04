@@ -122,7 +122,7 @@ export function LoggingSettings({
           <div className="font-medium">{t("settings.logFileLocation")}</div>
           <div className="text-muted-foreground">
             <p>{t("settings.logFileSavedIn")} <code className="rounded bg-muted px-1 py-0.5">logs</code> {t('settings.folder')}</p>
-            <p className="mt-1">{t("settings.fileNameFormat")}:<code className="rounded bg-muted px-1 py-0.5">comfynexus_YYYYMMDD.log</code></p>
+            <p className="mt-1">{t("settings.fileNameFormat")}:<code className="rounded bg-muted px-1 py-0.5">comfyui-box_YYYYMMDD.log</code></p>
             <p className="mt-1">{t("settings.autoCleanLogs")}</p>
           </div>
         </div>

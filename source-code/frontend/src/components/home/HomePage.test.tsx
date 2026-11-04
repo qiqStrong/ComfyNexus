@@ -97,7 +97,7 @@ describe('HomePage', () => {
     it('应该正确渲染欢迎标题', () => {
       render(<HomePage />)
 
-      expect(screen.getByText('欢迎使用 ComfyNexus')).toBeInTheDocument()
+      expect(screen.getByText('欢迎使用 Comfyui-Box')).toBeInTheDocument()
       expect(screen.getByText('现代化的 ComfyUI 管理工具')).toBeInTheDocument()
     })
 
@@ -158,7 +158,7 @@ describe('HomePage', () => {
       })
 
       // 页面应该正常渲染
-      expect(screen.getByText('欢迎使用 ComfyNexus')).toBeInTheDocument()
+      expect(screen.getByText('欢迎使用 Comfyui-Box')).toBeInTheDocument()
     })
 
     it('应该处理所有数据加载失败的情况', async () => {
@@ -175,7 +175,7 @@ describe('HomePage', () => {
       })
 
       // 页面应该正常渲染
-      expect(screen.getByText('欢迎使用 ComfyNexus')).toBeInTheDocument()
+      expect(screen.getByText('欢迎使用 Comfyui-Box')).toBeInTheDocument()
     })
   })
 
@@ -198,7 +198,7 @@ describe('HomePage', () => {
       render(<HomePage />)
 
       // 检查标题的深色主题类名
-      const title = screen.getByText('欢迎使用 ComfyNexus')
+      const title = screen.getByText('欢迎使用 Comfyui-Box')
       expect(title).toHaveClass('dark:text-dark-text-primary')
 
       // 检查副标题的深色主题类名
@@ -217,7 +217,7 @@ describe('HomePage', () => {
       expect(DefaultExport).toBeDefined()
       // 简单验证组件可以正常渲染即可
       render(<DefaultExport />)
-      expect(screen.getByText('欢迎使用 ComfyNexus')).toBeInTheDocument()
+      expect(screen.getByText('欢迎使用 Comfyui-Box')).toBeInTheDocument()
     })
   })
 })

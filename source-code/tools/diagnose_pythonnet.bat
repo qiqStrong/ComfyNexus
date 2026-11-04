@@ -3,7 +3,7 @@ chcp 65001 >nul 2>&1
 setlocal enabledelayedexpansion
 
 echo ============================================================
-echo    ComfyNexus Diagnostic Tool for Packaged Environment
+echo    Comfyui-Box Diagnostic Tool for Packaged Environment
 echo ============================================================
 echo.
 
@@ -21,7 +21,7 @@ if exist "%INTERNAL_DIR%" (
     echo [OK] _internal directory exists
 ) else (
     echo [ERROR] _internal directory not found
-    echo        Please place this script next to ComfyNexus.exe
+    echo        Please place this script next to Comfyui-Box.exe
     goto :end
 )
 echo.
@@ -129,10 +129,10 @@ echo ============================================================
 echo    Diagnostic Complete
 echo ============================================================
 echo.
-echo If ComfyNexus fails to start, try:
+echo If Comfyui-Box fails to start, try:
 echo   1. Install WebView2 Runtime ^(recommended^)
 echo   2. Install Visual C++ Redistributable
-echo   3. Run ComfyNexus.exe as Administrator
+echo   3. Run Comfyui-Box.exe as Administrator
 echo   4. Check antivirus software
 echo.
 

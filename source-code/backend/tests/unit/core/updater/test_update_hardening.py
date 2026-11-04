@@ -47,7 +47,7 @@ def updater():
 
     sys.modules.update(stubs)
     try:
-        spec = importlib.util.spec_from_file_location("comfynexus_updater_under_test", UPDATER_PATH)
+        spec = importlib.util.spec_from_file_location("comfyui-box_updater_under_test", UPDATER_PATH)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         yield module
@@ -75,9 +75,9 @@ def test_合法更新包正常解压到目标目录(updater, tmp_path):
     zip_path = _write_zip(
         tmp_path / "ok.zip",
         {
-            "ComfyNexus/ComfyNexus.exe": b"exe",
-            "ComfyNexus/_internal/app.py": b"print(1)",
-            "ComfyNexus/sub/dir/data.txt": b"data",
+            "Comfyui-Box/Comfyui-Box.exe": b"exe",
+            "Comfyui-Box/_internal/app.py": b"print(1)",
+            "Comfyui-Box/sub/dir/data.txt": b"data",
         },
     )
     target = tmp_path / "app"
@@ -85,7 +85,7 @@ def test_合法更新包正常解压到目标目录(updater, tmp_path):
 
     _extract(updater, zip_path, target)
 
-    assert (target / "ComfyNexus.exe").read_bytes() == b"exe"
+    assert (target / "Comfyui-Box.exe").read_bytes() == b"exe"
     assert (target / "_internal" / "app.py").read_bytes() == b"print(1)"
     assert (target / "sub" / "dir" / "data.txt").read_bytes() == b"data"
 
@@ -107,12 +107,12 @@ def test_顶层无根目录的包也按原样解压(updater, tmp_path):
 @pytest.mark.parametrize(
     "member",
     [
-        "ComfyNexus/../evil.txt",
-        "ComfyNexus/../../evil.txt",
+        "Comfyui-Box/../evil.txt",
+        "Comfyui-Box/../../evil.txt",
         "../evil.txt",
-        "ComfyNexus/a/../../../evil.txt",
+        "Comfyui-Box/a/../../../evil.txt",
         "C:/Windows/evil.txt",
-        "ComfyNexus/sub\\..\\..\\evil.txt",
+        "Comfyui-Box/sub\\..\\..\\evil.txt",
         # 注意：成员名里的 NUL 无法通过 zipfile 往返构造（读取时会被截断成合法名），
         # 这条路径由 `_member_relative_path` 的函数级用例覆盖。
     ],
@@ -121,7 +121,7 @@ def test_越界成员直接中止且不落盘(updater, tmp_path, member):
     zip_path = _write_zip(
         tmp_path / "bad.zip",
         {
-            "ComfyNexus/ComfyNexus.exe": b"exe",  # 正常成员也不能先被写出来
+            "Comfyui-Box/Comfyui-Box.exe": b"exe",  # 正常成员也不能先被写出来
             member: b"pwned",
         },
     )
@@ -136,14 +136,14 @@ def test_越界成员直接中止且不落盘(updater, tmp_path, member):
     assert not marker.exists()
     assert list(tmp_path.rglob("evil.txt")) == []
     # 先整体校验再解压：正常成员也不应该被提前写出来
-    assert not (target / "ComfyNexus.exe").exists()
+    assert not (target / "Comfyui-Box.exe").exists()
 
 
 def test_成员数超限时中止(updater, tmp_path, monkeypatch):
     monkeypatch.setattr(updater, "MAX_ARCHIVE_MEMBERS", 2)
     zip_path = _write_zip(
         tmp_path / "many.zip",
-        {f"ComfyNexus/f{i}.txt": b"x" for i in range(3)},
+        {f"Comfyui-Box/f{i}.txt": b"x" for i in range(3)},
     )
     target = tmp_path / "app"
     target.mkdir()
@@ -158,7 +158,7 @@ def test_单文件解压超限时中止(updater, tmp_path, monkeypatch):
     monkeypatch.setattr(updater, "MAX_SINGLE_FILE_BYTES", 8)
     zip_path = _write_zip(
         tmp_path / "big.zip",
-        {"ComfyNexus/big.bin": b"x" * 64},
+        {"Comfyui-Box/big.bin": b"x" * 64},
     )
     target = tmp_path / "app"
     target.mkdir()
@@ -174,7 +174,7 @@ def test_解压总量超限时中止(updater, tmp_path, monkeypatch):
     monkeypatch.setattr(updater, "MAX_TOTAL_EXTRACT_BYTES", 100)
     zip_path = _write_zip(
         tmp_path / "total.zip",
-        {f"ComfyNexus/part{i}.bin": b"x" * 60 for i in range(3)},
+        {f"Comfyui-Box/part{i}.bin": b"x" * 60 for i in range(3)},
     )
     target = tmp_path / "app"
     target.mkdir()
@@ -197,7 +197,7 @@ def test_软链接目录不会被当成合法落点(updater, tmp_path):
     except (OSError, NotImplementedError):
         pytest.skip("当前环境无法创建目录软链接")
 
-    zip_path = _write_zip(tmp_path / "link.zip", {"ComfyNexus/linkdir/file.txt": b"x"})
+    zip_path = _write_zip(tmp_path / "link.zip", {"Comfyui-Box/linkdir/file.txt": b"x"})
 
     with pytest.raises(Exception):
         _extract(updater, zip_path, target)
@@ -211,10 +211,10 @@ def test_软链接目录不会被当成合法落点(updater, tmp_path):
 @pytest.mark.parametrize(
     "member, root, expected",
     [
-        ("ComfyNexus/a/b.txt", "ComfyNexus", "a/b.txt"),
+        ("Comfyui-Box/a/b.txt", "Comfyui-Box", "a/b.txt"),
         ("a/b.txt", None, "a/b.txt"),
-        ("ComfyNexus/a/b.txt", None, "ComfyNexus/a/b.txt"),
-        ("ComfyNexus", "ComfyNexus", None),          # 剥离后为空
+        ("Comfyui-Box/a/b.txt", None, "Comfyui-Box/a/b.txt"),
+        ("Comfyui-Box", "Comfyui-Box", None),          # 剥离后为空
         ("../a", None, None),
         ("/etc/passwd", None, None),
         ("c:/x", None, None),

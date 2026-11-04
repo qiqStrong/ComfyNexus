@@ -1,5 +1,5 @@
 """
-Environment management API controller for ComfyNexus.
+Environment management API controller for Comfyui-Box.
 
 This module provides the API controller for environment management operations,
 including adding, deleting, updating, and scanning ComfyUI environments.

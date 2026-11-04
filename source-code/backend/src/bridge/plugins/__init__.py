@@ -1,5 +1,5 @@
 """
-ComfyNexus Bridge 插件模块
+Comfyui-Box Bridge 插件模块
 
 提供 ComfyUI 自定义节点桥接插件
 """

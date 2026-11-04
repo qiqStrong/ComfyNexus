@@ -41,7 +41,7 @@ def _show_fatal_error(message: str, detail: str = "") -> None:
         full_msg = message
         if detail:
             full_msg += f"\n\n{detail}"
-        messagebox.showerror("ComfyNexus - 启动失败", full_msg)
+        messagebox.showerror("Comfyui-Box - 启动失败", full_msg)
         root.destroy()
     except Exception:
         pass
@@ -69,9 +69,9 @@ def init_dotnet() -> None:
         _preload_assemblies()
         _patch_winforms_compat()
         _patch_webview2_dlls()
-        print("[ComfyNexus] .NET 8 coreclr initialized successfully")
+        print("[Comfyui-Box] .NET 8 coreclr initialized successfully")
     except Exception as e:
-        print(f"[ComfyNexus] FATAL: .NET 8 init failed: {e}")
+        print(f"[Comfyui-Box] FATAL: .NET 8 init failed: {e}")
         _show_fatal_error(
             ".NET 8 运行时初始化失败，应用无法启动。",
             f"错误信息: {e}\n\n请尝试以下操作:\n"
@@ -98,7 +98,7 @@ def _find_dotnet_root() -> Optional[Path]:
     3. 系统安装的 .NET Runtime
     """
     # 1. FULL 模式：runtime/dotnet8/（用户解压的完整运行时包）
-    runtime_dir = os.environ.get('COMFYNEXUS_RUNTIME_DIR')
+    runtime_dir = os.environ.get('COMFYUI_BOX_RUNTIME_DIR')
     if runtime_dir:
         full_dotnet = Path(runtime_dir) / "dotnet8"
         if full_dotnet.exists() and (full_dotnet / "shared").exists():
@@ -157,7 +157,7 @@ def _generate_runtime_config() -> Path:
     }
 
     # 配置文件放在临时目录
-    config_dir = Path(tempfile.gettempdir()) / "ComfyNexus"
+    config_dir = Path(tempfile.gettempdir()) / "Comfyui-Box"
     config_dir.mkdir(parents=True, exist_ok=True)
     config_path = config_dir / "pythonnet.runtimeconfig.json"
 
@@ -235,7 +235,7 @@ def _setup_assembly_resolve() -> None:
         System.AppDomain.CurrentDomain.AssemblyResolve += on_assembly_resolve
         
     except Exception as e:
-        print(f"[ComfyNexus] AssemblyResolve setup failed: {e}")
+        print(f"[Comfyui-Box] AssemblyResolve setup failed: {e}")
 
 
 def _auto_install_dotnet8() -> None:
@@ -243,7 +243,7 @@ def _auto_install_dotnet8() -> None:
     自动下载并安装 .NET 8 Desktop Runtime。
     
     使用 tkinter GUI 窗口显示下载和安装进度，
-    风格与 ComfyNexus 的暗色主题一致。
+    风格与 Comfyui-Box 的暗色主题一致。
     tkinter 是 Python 标准库，不依赖 .NET。
     """
     import threading
@@ -251,7 +251,7 @@ def _auto_install_dotnet8() -> None:
     import ssl
 
     download_url = "https://aka.ms/dotnet/8.0/windowsdesktop-runtime-win-x64.exe"
-    installer_path = Path(tempfile.gettempdir()) / "ComfyNexus" / "dotnet8-desktop-runtime.exe"
+    installer_path = Path(tempfile.gettempdir()) / "Comfyui-Box" / "dotnet8-desktop-runtime.exe"
     installer_path.parent.mkdir(parents=True, exist_ok=True)
 
     try:
@@ -264,7 +264,7 @@ def _auto_install_dotnet8() -> None:
 
     # ========== tkinter GUI ==========
     root = tk.Tk()
-    root.title("ComfyNexus")
+    root.title("Comfyui-Box")
     root.geometry("480x320")
     root.resizable(False, False)
     root.configure(bg="#1e1e2e")
@@ -288,7 +288,7 @@ def _auto_install_dotnet8() -> None:
     ERROR = "#ef4444"
 
     # 标题
-    tk.Label(root, text="ComfyNexus", font=("Segoe UI", 18, "bold"),
+    tk.Label(root, text="Comfyui-Box", font=("Segoe UI", 18, "bold"),
              fg=ACCENT_LIGHT, bg=BG).pack(pady=(30, 5))
 
     # 副标题
@@ -332,7 +332,7 @@ def _auto_install_dotnet8() -> None:
             status_var.set("Downloading .NET 8 Desktop Runtime...")
 
             ctx = ssl.create_default_context()
-            req = urllib.request.Request(download_url, headers={"User-Agent": "ComfyNexus/1.0"})
+            req = urllib.request.Request(download_url, headers={"User-Agent": "Comfyui-Box/1.0"})
             try:
                 resp = urllib.request.urlopen(req, context=ctx, timeout=300)
             except ssl.SSLError:
@@ -382,7 +382,7 @@ def _auto_install_dotnet8() -> None:
                 install_success[0] = True
                 status_var.set("Installation complete!")
                 status_label.configure(fg=SUCCESS)
-                hint_var.set("ComfyNexus will continue starting...")
+                hint_var.set("Comfyui-Box will continue starting...")
             else:
                 status_var.set(f"Installation returned code {result.returncode}")
                 status_label.configure(fg=ERROR)
@@ -415,18 +415,18 @@ def _auto_install_dotnet8() -> None:
 
 def _auto_install_dotnet8_cmd() -> None:
     """CMD 回退方案：tkinter 不可用时弹 CMD 窗口"""
-    installer_dir = Path(tempfile.gettempdir()) / "ComfyNexus"
+    installer_dir = Path(tempfile.gettempdir()) / "Comfyui-Box"
     installer_dir.mkdir(parents=True, exist_ok=True)
     installer_path = installer_dir / "dotnet8-desktop-runtime.exe"
     script_path = installer_dir / "_install_dotnet8.bat"
 
     bat_content = f'''@echo off
 chcp 65001 >nul 2>nul
-title ComfyNexus - Installing .NET 8 Runtime
+title Comfyui-Box - Installing .NET 8 Runtime
 color 0B
 echo.
 echo  ============================================================
-echo   ComfyNexus - .NET 8 Desktop Runtime Installer
+echo   Comfyui-Box - .NET 8 Desktop Runtime Installer
 echo  ============================================================
 echo.
 echo   Downloading from Microsoft...
@@ -617,7 +617,7 @@ def _patch_winforms_compat() -> None:
                     shutil.rmtree(str(pycache), ignore_errors=True)
 
     except Exception as e:
-        print(f"[ComfyNexus] Cannot patch winforms.py: {e}")
+        print(f"[Comfyui-Box] Cannot patch winforms.py: {e}")
 
 
 def _apply_winforms_monkey_patches() -> None:
@@ -629,7 +629,7 @@ def _apply_winforms_monkey_patches() -> None:
     """
     try:
         import logging
-        _logger = logging.getLogger('ComfyNexus')
+        _logger = logging.getLogger('Comfyui-Box')
         
         from webview.platforms import winforms as wf
         if getattr(wf, '_dotnet8_patched', False):
@@ -697,7 +697,7 @@ def _apply_winforms_monkey_patches() -> None:
             _logger.warning(f"[OpenFolderDialog] monkey-patch: 条件不满足 (WinForms={has_winforms}, Func={has_func})，跳过")
     except Exception as e:
         import logging as _logging
-        _logging.getLogger('ComfyNexus').error(f"[OpenFolderDialog] monkey-patch 异常: {e}", exc_info=True)
+        _logging.getLogger('Comfyui-Box').error(f"[OpenFolderDialog] monkey-patch 异常: {e}", exc_info=True)
 
 
 def _patch_gpu_args(hardware_acceleration: bool = True) -> None:
@@ -743,7 +743,7 @@ def _patch_gpu_args(hardware_acceleration: bool = True) -> None:
                                     pyc.unlink()
                                 except OSError:
                                     pass
-                    print("[ComfyNexus] GPU args patch applied to edgechromium.py")
+                    print("[Comfyui-Box] GPU args patch applied to edgechromium.py")
                     return
 
         from webview.platforms.edgechromium import EdgeChrome
@@ -763,10 +763,10 @@ def _patch_gpu_args(hardware_acceleration: bool = True) -> None:
 
         EdgeChrome.__init__ = _patched_init
         EdgeChrome._gpu_args_patched = True
-        print("[ComfyNexus] GPU args patch applied via monkey-patch")
+        print("[Comfyui-Box] GPU args patch applied via monkey-patch")
 
     except Exception as e:
-        print(f"[ComfyNexus] Cannot apply GPU args patch: {e}")
+        print(f"[Comfyui-Box] Cannot apply GPU args patch: {e}")
 
 
 def _patch_webview2_dlls() -> None:
@@ -876,7 +876,7 @@ def _auto_install_webview2() -> None:
 
     # WebView2 Evergreen Bootstrapper（约 1.7MB，会自动下载完整 Runtime）
     download_url = "https://go.microsoft.com/fwlink/p/?LinkId=2124703"
-    installer_path = Path(tempfile.gettempdir()) / "ComfyNexus" / "MicrosoftEdgeWebview2Setup.exe"
+    installer_path = Path(tempfile.gettempdir()) / "Comfyui-Box" / "MicrosoftEdgeWebview2Setup.exe"
     installer_path.parent.mkdir(parents=True, exist_ok=True)
 
     try:
@@ -888,7 +888,7 @@ def _auto_install_webview2() -> None:
 
     # ========== tkinter GUI ==========
     root = tk.Tk()
-    root.title("ComfyNexus")
+    root.title("Comfyui-Box")
     root.geometry("480x280")
     root.resizable(False, False)
     root.configure(bg="#1e1e2e")
@@ -906,7 +906,7 @@ def _auto_install_webview2() -> None:
     SUCCESS = "#22c55e"
     ERROR = "#ef4444"
 
-    tk.Label(root, text="ComfyNexus", font=("Segoe UI", 18, "bold"),
+    tk.Label(root, text="Comfyui-Box", font=("Segoe UI", 18, "bold"),
              fg=ACCENT_LIGHT, bg=BG).pack(pady=(30, 5))
 
     tk.Label(root, text="WebView2 Runtime Required",
@@ -940,7 +940,7 @@ def _auto_install_webview2() -> None:
         try:
             # 下载 Bootstrapper
             ctx = ssl.create_default_context()
-            req = urllib.request.Request(download_url, headers={"User-Agent": "ComfyNexus/1.0"})
+            req = urllib.request.Request(download_url, headers={"User-Agent": "Comfyui-Box/1.0"})
             try:
                 resp = urllib.request.urlopen(req, context=ctx, timeout=120)
             except ssl.SSLError:
@@ -969,7 +969,7 @@ def _auto_install_webview2() -> None:
                 install_success[0] = True
                 status_var.set("WebView2 Runtime installed!")
                 status_label.configure(fg=SUCCESS)
-                hint_var.set("ComfyNexus will continue starting...")
+                hint_var.set("Comfyui-Box will continue starting...")
             else:
                 status_var.set(f"Installer returned code {result.returncode}")
                 status_label.configure(fg=ERROR)
@@ -1000,17 +1000,17 @@ def _auto_install_webview2() -> None:
 def _auto_install_webview2_cmd() -> None:
     """CMD 回退方案"""
 
-    installer_dir = Path(tempfile.gettempdir()) / "ComfyNexus"
+    installer_dir = Path(tempfile.gettempdir()) / "Comfyui-Box"
     installer_dir.mkdir(parents=True, exist_ok=True)
     installer_path = installer_dir / "MicrosoftEdgeWebview2Setup.exe"
     script_path = installer_dir / "_install_webview2.bat"
 
     bat = f'''@echo off
 chcp 65001 >nul 2>nul
-title ComfyNexus - Installing WebView2 Runtime
+title Comfyui-Box - Installing WebView2 Runtime
 color 0B
 echo.
-echo  ComfyNexus - WebView2 Runtime Installer
+echo  Comfyui-Box - WebView2 Runtime Installer
 echo.
 echo  Downloading WebView2 Bootstrapper...
 set "URL=https://go.microsoft.com/fwlink/p/?LinkId=2124703"

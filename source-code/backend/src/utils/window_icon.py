@@ -27,10 +27,10 @@ from pathlib import Path
 
 # 与 dotnet_runtime 等运行时模块保持一致，挂到主日志器上，
 # 否则 __name__ 命名器没有 handler，日志会被静默丢弃。
-logger = logging.getLogger("ComfyNexus")
+logger = logging.getLogger("Comfyui-Box")
 
 # 应用在任务栏中的唯一标识，格式建议为 CompanyName.Product[.SubProduct]
-APP_USER_MODEL_ID = "ComfyNexus.Desktop"
+APP_USER_MODEL_ID = "Comfyui-Box.Desktop"
 
 WM_SETICON = 0x0080
 WM_GETICON = 0x007F

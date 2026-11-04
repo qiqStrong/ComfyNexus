@@ -38,7 +38,7 @@ class ReleaseInfo:
 class ReleaseNotesService:
     """ComfyUI Release 更新日志服务"""
     
-    JSON_DATA_URL = "https://raw.githubusercontent.com/qiqStrong/ComfyNexus/refs/heads/main/comfyui_releases.json"
+    JSON_DATA_URL = "https://raw.githubusercontent.com/qiqStrong/Comfyui-Box/refs/heads/main/comfyui_releases.json"
     ATOM_FEED_URL = "https://github.com/Comfy-Org/ComfyUI/releases.atom"
     GITHUB_RELEASE_URL_TEMPLATE = "https://github.com/Comfy-Org/ComfyUI/releases/tag/{version}"
     
@@ -159,7 +159,7 @@ class ReleaseNotesService:
         proxies = self._get_proxies()
         
         url = self.JSON_DATA_URL
-        headers = {'User-Agent': 'ComfyNexus/1.0'}
+        headers = {'User-Agent': 'Comfyui-Box/1.0'}
         verify_ssl = True
         
         try:
@@ -210,7 +210,7 @@ class ReleaseNotesService:
         proxies = self._get_proxies()
         
         url = self.ATOM_FEED_URL
-        headers = {'User-Agent': 'ComfyNexus/1.0'}
+        headers = {'User-Agent': 'Comfyui-Box/1.0'}
         verify_ssl = True
         
         try:

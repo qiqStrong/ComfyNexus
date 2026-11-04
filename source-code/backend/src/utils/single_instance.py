@@ -66,7 +66,7 @@ class SingleInstance:
     当检测到已有实例时，会激活已存在的窗口并返回 False。
     """
     
-    def __init__(self, app_name: str = "ComfyNexus"):
+    def __init__(self, app_name: str = "Comfyui-Box"):
         self.app_name = app_name
         self.mutex_name = f"Global\\{app_name}_SingleInstance_Mutex"
         self.mutex_handle: Optional[HANDLE] = None
@@ -133,7 +133,7 @@ class SingleInstance:
         return False
 
 
-def check_single_instance(app_name: str = "ComfyNexus") -> Optional[SingleInstance]:
+def check_single_instance(app_name: str = "Comfyui-Box") -> Optional[SingleInstance]:
     """
     检查是否为单例运行
     
@@ -152,7 +152,7 @@ def check_single_instance(app_name: str = "ComfyNexus") -> Optional[SingleInstan
     return None
 
 
-def ensure_single_instance(app_name: str = "ComfyNexus") -> tuple[bool, Optional[SingleInstance]]:
+def ensure_single_instance(app_name: str = "Comfyui-Box") -> tuple[bool, Optional[SingleInstance]]:
     """
     确保单例运行
     

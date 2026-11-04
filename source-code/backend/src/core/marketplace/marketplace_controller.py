@@ -942,7 +942,7 @@ class MarketplaceController:
                     if github_mirror_manager.is_enabled():
                         mirror_url, mirror_headers = github_mirror_manager.transform_url(raw_url, "raw")
                         raw_url = mirror_url
-                        request_headers = {'User-Agent': 'ComfyNexus/1.0'}
+                        request_headers = {'User-Agent': 'Comfyui-Box/1.0'}
                         request_headers.update(mirror_headers)
                         settings = github_mirror_manager._load_settings()
                         verify_ssl = settings.get("verifySSL", True)
@@ -979,7 +979,7 @@ class MarketplaceController:
             logger.info("尝试通过 GitHub API 获取默认分支")
             try:
                 api_url = f"https://api.github.com/repos/{owner}/{repo}"
-                api_headers = {'User-Agent': 'ComfyNexus/1.0'}
+                api_headers = {'User-Agent': 'Comfyui-Box/1.0'}
                 verify_ssl = True
                 
                 try:
@@ -1011,7 +1011,7 @@ class MarketplaceController:
                             if github_mirror_manager.is_enabled():
                                 mirror_url, mirror_headers = github_mirror_manager.transform_url(raw_url, "raw")
                                 raw_url = mirror_url
-                                request_headers = {'User-Agent': 'ComfyNexus/1.0'}
+                                request_headers = {'User-Agent': 'Comfyui-Box/1.0'}
                                 request_headers.update(mirror_headers)
                                 settings = github_mirror_manager._load_settings()
                                 verify_ssl = settings.get("verifySSL", True)

@@ -1,5 +1,5 @@
 """
-ComfyNexus Bridge - ComfyUI 自定义节点桥接插件
+Comfyui-Box Bridge - ComfyUI 自定义节点桥接插件
 
 """
 

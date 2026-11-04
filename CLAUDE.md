@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-ComfyNexus 是一个为 ComfyUI 设计的现代化管理平台（仅支持 Windows），采用 React 19 前端 + Python 后端（pywebview 桌面应用）架构。核心目标是治理和优化 ComfyUI 生态：环境管理、版本控制、插件市场、依赖管理、AI 助手、工作流解析等。
+Comfyui-Box 是一个为 ComfyUI 设计的现代化管理平台（仅支持 Windows），采用 React 19 前端 + Python 后端（pywebview 桌面应用）架构。核心目标是治理和优化 ComfyUI 生态：环境管理、版本控制、插件市场、依赖管理、AI 助手、工作流解析等。
 
 **技术栈：**
 - **前端**: React 19（`frontend/package.json`: `react ^19.2.0`）, TypeScript, Vite 7, TailwindCSS, Zustand, React Router, Radix UI
@@ -64,7 +64,7 @@ cd source-code
 .\build.ps1 -Version "1.0.2"
 
 # build.ps1 支持的参数（见 source-code/build.ps1 param 块）：
-# -Version       指定版本号，缺省时读 source-code/comfy_nexus_version.py 的 __version__
+# -Version       指定版本号，缺省时读 source-code/comfyui_box_version.py 的 __version__
 # -SkipFrontend  跳过前端构建
 # -SkipClean     跳过清理
 # -SkipTests     跳过测试
@@ -76,7 +76,7 @@ cd source-code
 # 构建产物位于 source-code/build_scripts/打包产物_<版本号>/
 ```
 
-版本号唯一来源：`source-code/comfy_nexus_version.py`（当前 `__version__ = "V1.0.0"`），缺省回落值 `"V1.0.0"`（`build_scripts/构建工具库.ps1:93-117`）。**不存在名为 `VERSION` 的文件。**
+版本号唯一来源：`source-code/comfyui_box_version.py`（当前 `__version__ = "V1.0.0"`），缺省回落值 `"V1.0.0"`（`build_scripts/构建工具库.ps1:93-117`）。**不存在名为 `VERSION` 的文件。**
 
 ## 架构设计
 
@@ -223,7 +223,7 @@ process_manager.start(python_path, comfyui_path, args=None, env_config=None)  # 
 
 ### 6. 构建与打包
 - PyInstaller 配置（均在 `source-code/`）：`build_exe.spec`（发布版，`console=False`）、`build_exe_debug.spec`（调试版，`console=True`）、`backend/updater/updater.spec`（更新器，由 `build_scripts/构建.ps1:300` 调用）
-  - 仓库根还有个 `ComfyNexus.spec`（`console=True`），在 `build_scripts/*.ps1` 中**没有任何引用**（`grep -rn "\.spec" build_scripts/` 实测）
+  - 仓库根还有个 `Comfyui-Box.spec`（`console=True`），在 `build_scripts/*.ps1` 中**没有任何引用**（`grep -rn "\.spec" build_scripts/` 实测）
 - 构建脚本（`source-code/build.ps1` → `build_scripts/构建.ps1`）会自动：
   1. 构建前端 → 产出到 `source-code/dist/`（`构建.ps1:35` 的 `$TempDistDir`）
   2. 打包后端 → PyInstaller 生成 exe
@@ -283,7 +283,7 @@ process_manager.start(python_path, comfyui_path, args=None, env_config=None)  # 
 - **解压前整体校验**：`_extract_update()` 先遍历 `zf.infolist()` 完成全部校验，再进入第二遍写盘，任何一个成员非法都会在写盘前中止：
   - 成员路径经 `_member_relative_path()`：拒绝 NUL、反斜杠、前导 `/`、盘符前缀、`.`/`..`/空段；再经 `_safe_extract_target()` 用 `resolve()` + `is_relative_to()` 收敛到目标目录内（含软链接逃逸）。
   - 上限：`MAX_ARCHIVE_MEMBERS = 50000`、`MAX_SINGLE_FILE_BYTES = 1 GiB`、`MAX_TOTAL_EXTRACT_BYTES = 8 GiB`；声明体积和实际写入量都会检查（声明值可伪造）。
-  - 正常更新包根目录为 `ComfyNexus/`（`EXPECTED_ROOT`），剥离前缀后不得为空。
+  - 正常更新包根目录为 `Comfyui-Box/`（`EXPECTED_ROOT`），剥离前缀后不得为空。
 - **不要退回旧写法**：`target_dir / member` 配合 `zf.open(member)` 在 Windows 上可被 `../../x`、`C:/Windows/x`、反斜杠成员写出目标目录。
 - 修改这两处后跑 `pytest tests/unit/core/updater/test_update_hardening.py`（该测试用桩替换 `pythonnet`/`webview`，不会初始化 .NET 运行时）。
 
@@ -313,7 +313,7 @@ process_manager.start(python_path, comfyui_path, args=None, env_config=None)  # 
 
 ### 后端调试
 - `main.py:58` 的 `SIMULATE_FROZEN = True` 用于模拟打包环境；注意当前 `elif SIMULATE_FROZEN` 与 `else` 两个分支的 `base_path` 表达式相同（`Path(__file__).parent.parent` → `source-code/`），因此该开关本身不改变路径解析，只在 frozen 判定顺序上有意义
-- **日志位置**：`source-code/logs/comfynexus_<YYYYMMDD_HHMMSS>.log`
+- **日志位置**：`source-code/logs/comfyui-box_<YYYYMMDD_HHMMSS>.log`
   - 目录由 `src/utils/paths.py` 的 `get_log_dir()`（`<项目根>/logs`）决定，`src/utils/logger.py:415-417` 调用；写入用自定义 `DateRotatingFileHandler`（`logger.py:258`、`:455`）
   - 清理策略：按数量保留 10 个（`cleanup_old_logs_by_count`, `logger.py:186`）或按天数保留 30 天（`cleanup_old_logs`, `logger.py:103`）
   - 不存在 `data/logs/app.log` 这个路径

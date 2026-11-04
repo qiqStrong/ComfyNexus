@@ -26,7 +26,7 @@ def show_webview2_diagnostic(error_info: str = "") -> str:
     result = {"action": "exit"}
 
     root = tk.Tk()
-    root.title("ComfyNexus - 启动诊断")
+    root.title("Comfyui-Box - 启动诊断")
     root.geometry("520x420")
     root.resizable(False, False)
     root.configure(bg="#1e1e2e")
@@ -44,7 +44,7 @@ def show_webview2_diagnostic(error_info: str = "") -> str:
     ERROR_COLOR = "#ef4444"
     SUCCESS = "#22c55e"
 
-    tk.Label(root, text="ComfyNexus", font=("Segoe UI", 18, "bold"),
+    tk.Label(root, text="Comfyui-Box", font=("Segoe UI", 18, "bold"),
              fg=ACCENT_LIGHT, bg=BG).pack(pady=(20, 2))
 
     tk.Label(root, text="WebView2 初始化失败", font=("Segoe UI", 12),
@@ -53,10 +53,10 @@ def show_webview2_diagnostic(error_info: str = "") -> str:
     diag_frame = tk.Frame(root, bg="#27273a", padx=16, pady=12)
     diag_frame.pack(fill=tk.X, padx=24, pady=(0, 8))
 
-    runtime_dir = os.environ.get('COMFYNEXUS_RUNTIME_DIR', '')
+    runtime_dir = os.environ.get('COMFYUI_BOX_RUNTIME_DIR', '')
     checks = [
         ("WebView2 Fixed Version", bool(os.environ.get('WEBVIEW2_BROWSER_EXECUTABLE_FOLDER'))),
-        (".NET 8 Runtime", bool(os.environ.get('COMFYNEXUS_FULL_MODE'))),
+        (".NET 8 Runtime", bool(os.environ.get('COMFYUI_BOX_FULL_MODE'))),
         ("VC++ Runtime", runtime_dir and (Path(runtime_dir) / "vcruntime").exists()),
     ]
 
@@ -128,8 +128,8 @@ def get_safe_mode_marker_path() -> Path:
     """获取安全模式标记文件路径"""
     local_app_data = os.environ.get('LOCALAPPDATA')
     if local_app_data:
-        return Path(local_app_data) / 'ComfyNexus' / '.safe_mode'
-    return Path.home() / '.comfynexus_safe_mode'
+        return Path(local_app_data) / 'Comfyui-Box' / '.safe_mode'
+    return Path.home() / '.comfyui-box_safe_mode'
 
 
 def is_safe_mode() -> bool:

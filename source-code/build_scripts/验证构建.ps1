@@ -1,4 +1,4 @@
-# ComfyNexus 构建验证脚本
+# Comfyui-Box 构建验证脚本
 # 用途: 验证构建产物的完整性
 # 使用方法: .\verify_build.ps1 [-Version "1.0.2"]
 
@@ -17,7 +17,7 @@ Write-Host ""
 Write-ColorOutput @"
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║            ComfyNexus 构建验证工具                        ║
+║            Comfyui-Box 构建验证工具                        ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
 "@ "Cyan"
@@ -78,15 +78,15 @@ if (-not $DistCheck.Valid) {
 Write-Step "3/4: 验证 exe 文件"
 
 # 检查是否是 onedir 模式
-$OnedirPath = Join-Path $DistDir "ComfyNexus"
+$OnedirPath = Join-Path $DistDir "Comfyui-Box"
 if (Test-Path $OnedirPath) {
     # onedir 模式
-    $ExePath = Join-Path $OnedirPath "ComfyNexus.exe"
+    $ExePath = Join-Path $OnedirPath "Comfyui-Box.exe"
     $IsOnedir = $true
     Write-Info "检测到 onedir 模式"
 } else {
     # onefile 模式
-    $ExePath = Join-Path $DistDir "ComfyNexus.exe"
+    $ExePath = Join-Path $DistDir "Comfyui-Box.exe"
     $IsOnedir = $false
     Write-Info "检测到 onefile 模式"
 }
@@ -94,11 +94,11 @@ if (Test-Path $OnedirPath) {
 $ExeCheck = Test-ExeFile -Path $ExePath
 
 if (-not $ExeCheck.Valid) {
-    $Errors += "ComfyNexus.exe 验证失败: $($ExeCheck.Message)"
-    Write-Error-Custom "ComfyNexus.exe 验证失败: $($ExeCheck.Message)"
+    $Errors += "Comfyui-Box.exe 验证失败: $($ExeCheck.Message)"
+    Write-Error-Custom "Comfyui-Box.exe 验证失败: $($ExeCheck.Message)"
 } else {
     $ExeSizeMB = $ExeCheck.Size / 1MB
-    Write-Success "ComfyNexus.exe 存在 ($([math]::Round($ExeSizeMB, 2)) MB)"
+    Write-Success "Comfyui-Box.exe 存在 ($([math]::Round($ExeSizeMB, 2)) MB)"
     
     # 检查 exe 大小是否合理
     if ($ExeSizeMB -lt 1) {
@@ -129,9 +129,9 @@ Write-Step "4/4: 验证 ZIP 文件"
 
 # 根据版本号生成 ZIP 文件名
 if ($Version -like "RC*") {
-    $ZipName = "ComfyNexus-$Version-win64.zip"
+    $ZipName = "Comfyui-Box-$Version-win64.zip"
 } else {
-    $ZipName = "ComfyNexus-v$Version-win64.zip"
+    $ZipName = "Comfyui-Box-v$Version-win64.zip"
 }
 $ZipPath = Join-Path $BuildOutputDir $ZipName
 
@@ -158,18 +158,18 @@ if (-not (Test-Path $ZipPath)) {
             # 检查 exe 文件
             if ($IsOnedir) {
                 # onedir 模式
-                $HasExe = $Zip.Entries | Where-Object { $_.FullName -like "ComfyNexus/ComfyNexus.exe" -or $_.FullName -like "ComfyNexus\ComfyNexus.exe" }
+                $HasExe = $Zip.Entries | Where-Object { $_.FullName -like "Comfyui-Box/Comfyui-Box.exe" -or $_.FullName -like "Comfyui-Box\Comfyui-Box.exe" }
                 if ($HasExe) {
-                    Write-Success "✓ ComfyNexus/ComfyNexus.exe 已包含在 ZIP 中"
+                    Write-Success "✓ Comfyui-Box/Comfyui-Box.exe 已包含在 ZIP 中"
                 } else {
-                    $Errors += "ZIP 中缺少 ComfyNexus/ComfyNexus.exe"
-                    Write-Error-Custom "ZIP 中缺少 ComfyNexus/ComfyNexus.exe"
+                    $Errors += "ZIP 中缺少 Comfyui-Box/Comfyui-Box.exe"
+                    Write-Error-Custom "ZIP 中缺少 Comfyui-Box/Comfyui-Box.exe"
                 }
                 
-                # 检查前端文件（在 ComfyNexus/_internal/dist/ 目录下）
+                # 检查前端文件（在 Comfyui-Box/_internal/dist/ 目录下）
                 $HasDistFiles = $Zip.Entries | Where-Object { 
-                    $_.FullName -like "ComfyNexus/_internal/dist/*" -or 
-                    $_.FullName -like "ComfyNexus\_internal\dist\*" 
+                    $_.FullName -like "Comfyui-Box/_internal/dist/*" -or 
+                    $_.FullName -like "Comfyui-Box\_internal\dist\*" 
                 }
                 if ($HasDistFiles) {
                     $DistFileCount = ($HasDistFiles | Measure-Object).Count
@@ -180,12 +180,12 @@ if (-not (Test-Path $ZipPath)) {
                 }
             } else {
                 # onefile 模式
-                $HasExe = $Zip.Entries | Where-Object { $_.Name -eq "ComfyNexus.exe" }
+                $HasExe = $Zip.Entries | Where-Object { $_.Name -eq "Comfyui-Box.exe" }
                 if ($HasExe) {
-                    Write-Success "✓ ComfyNexus.exe 已包含在 ZIP 中"
+                    Write-Success "✓ Comfyui-Box.exe 已包含在 ZIP 中"
                 } else {
-                    $Errors += "ZIP 中缺少 ComfyNexus.exe"
-                    Write-Error-Custom "ZIP 中缺少 ComfyNexus.exe"
+                    $Errors += "ZIP 中缺少 Comfyui-Box.exe"
+                    Write-Error-Custom "ZIP 中缺少 Comfyui-Box.exe"
                 }
                 
                 # 检查前端文件

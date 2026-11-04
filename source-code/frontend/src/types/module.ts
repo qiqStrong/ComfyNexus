@@ -217,7 +217,7 @@ export const MODULE_REGISTRY: Record<string, ModuleMetadata> = {
   'about': {
     id: 'about',
     name: '关于',
-    description: '关于 ComfyNexus',
+    description: '关于 Comfyui-Box',
     icon: 'Info',
     path: '/about',
     component: 'AboutPage',

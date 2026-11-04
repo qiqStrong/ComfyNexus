@@ -51,7 +51,7 @@ export function GitHubApiSetting({
   }
 
   const openGitHubTokenPage = () => {
-    window.open('https://github.com/settings/tokens/new?description=ComfyNexus&scopes=repo,read:user', '_blank')
+    window.open('https://github.com/settings/tokens/new?description=Comfyui-Box&scopes=repo,read:user', '_blank')
   }
 
   return (

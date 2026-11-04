@@ -1,4 +1,4 @@
-# ComfyNexus 发布包生成脚本
+# Comfyui-Box 发布包生成脚本
 # 用途: 从已有的构建产物目录创建发布包
 # 使用方法: .\create_release_package.ps1 [-Version "1.0.2"] [-VerboseOutput]
 
@@ -29,7 +29,7 @@ Write-Host ""
 Write-ColorOutput @"
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║           ComfyNexus 发布包生成工具                       ║
+║           Comfyui-Box 发布包生成工具                       ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
 "@ "Cyan"
@@ -76,7 +76,7 @@ try {
     
     Write-ColorOutput "下一步操作:" "Yellow"
     Write-Host "  1. 验证发布包: .\verify_build.ps1 -Version $Version"
-    Write-Host "  2. 测试 exe: $DistDir\ComfyNexus.exe"
+    Write-Host "  2. 测试 exe: $DistDir\Comfyui-Box.exe"
     Write-Host "  3. 解压测试: Expand-Archive -Path '$($Result.ZipName)' -DestinationPath '.\test'"
     Write-Host ""
     
@@ -99,7 +99,7 @@ try {
     Write-ColorOutput "故障排查建议:" "Yellow"
     Write-Host "  1. 检查构建产物目录是否存在: Test-Path '$BuildOutputDir'"
     Write-Host "  2. 检查 dist 目录是否存在: Test-Path '$DistDir'"
-    Write-Host "  3. 检查 exe 文件是否存在: Test-Path '$DistDir\ComfyNexus.exe'"
+    Write-Host "  3. 检查 exe 文件是否存在: Test-Path '$DistDir\Comfyui-Box.exe'"
     Write-Host "  4. 运行构建验证: .\verify_build.ps1 -Version $Version"
     Write-Host "  5. 重新构建: .\build.ps1"
     Write-Host ""

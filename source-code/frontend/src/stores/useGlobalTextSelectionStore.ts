@@ -11,7 +11,7 @@ interface GlobalTextSelectionState {
   resetPosition: () => void
 }
 
-const STORAGE_KEY = 'comfynexus-global-copy-button-position'
+const STORAGE_KEY = 'comfyui-box-global-copy-button-position'
 
 const getDefaultPosition = (): { x: number; y: number } => {
   if (typeof window !== 'undefined') {

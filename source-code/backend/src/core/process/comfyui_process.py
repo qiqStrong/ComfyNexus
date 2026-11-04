@@ -214,7 +214,7 @@ class ComfyUIProcess:
             self._push_log('ERROR', error_msg)
             raise FileNotFoundError(error_msg)
         
-        # 部署 ComfyNexus Bridge 插件
+        # 部署 Comfyui-Box Bridge 插件
         self._deploy_bridge_plugin(comfyui_path_obj, env_config)
         
         # 构建命令
@@ -1277,7 +1277,7 @@ class ComfyUIProcess:
             uptime = int(time.time() - self.start_time)
         
         # 判断运行状态：
-        # 1. ComfyNexus 启动的进程：self.is_running 且进程存活且端口可用
+        # 1. Comfyui-Box 启动的进程：self.is_running 且进程存活且端口可用
         # 2. 外部进程：检测到外部进程且端口可用
         is_external = external_info is not None and port_available
         is_running = (self.is_running and process_alive and port_available) or is_external
@@ -1554,7 +1554,7 @@ class ComfyUIProcess:
     
     def _deploy_bridge_plugin(self, comfyui_path: Path, env_config: dict = None):
         """
-        部署 ComfyNexus Bridge 插件到 ComfyUI
+        部署 Comfyui-Box Bridge 插件到 ComfyUI
         
         Args:
             comfyui_path: ComfyUI 目录路径
@@ -1579,15 +1579,29 @@ class ComfyUIProcess:
             else:
                 custom_nodes_path = comfyui_path / "custom_nodes"
             
-            plugin_dir = custom_nodes_path / "ComfyNexus_Bridge"
-            plugin_dir_disabled = custom_nodes_path / "ComfyNexus_Bridge.disabled"
-            version_banner = f'========== [ComfyNexus Bridge v{bridge_plugin_version}] =========='
+            plugin_dir = custom_nodes_path / "Comfyui-Box_Bridge"
+            plugin_dir_disabled = custom_nodes_path / "Comfyui-Box_Bridge.disabled"
+            version_banner = f'========== [Comfyui-Box Bridge v{bridge_plugin_version}] =========='
             self._push_log('INFO', version_banner)
             logger.dev(version_banner)
-            
+
+            # 兼容旧品牌部署目录：旧目录存在且新目录不存在时原地迁移，并清理旧 js 文件名
+            legacy_plugin_dir = custom_nodes_path / "ComfyNexus_Bridge"
+            legacy_plugin_dir_disabled = custom_nodes_path / "ComfyNexus_Bridge.disabled"
+            try:
+                if legacy_plugin_dir_disabled.exists() and not plugin_dir_disabled.exists():
+                    legacy_plugin_dir_disabled.rename(plugin_dir_disabled)
+                elif legacy_plugin_dir.exists() and not plugin_dir.exists():
+                    legacy_plugin_dir.rename(plugin_dir)
+                legacy_js_file = plugin_dir / "js" / "comfynexus_bridge.js"
+                if legacy_js_file.exists():
+                    legacy_js_file.unlink()
+            except Exception as e:
+                logger.warning(f'迁移旧版 Bridge 插件目录失败: {e}')
+
             if plugin_dir_disabled.exists():
-                self._push_log('WARNING', '⚠️ ComfyNexus Bridge 插件已被禁用，跳过注入。\n   禁用后以下功能将不可用：实时预览进度、右键保存图片、资产库推送\n   如需启用，请在插件管理中启用该插件。')
-                logger.dev('[ComfyNexus Bridge] 插件已被禁用，跳过注入')
+                self._push_log('WARNING', '⚠️ Comfyui-Box Bridge 插件已被禁用，跳过注入。\n   禁用后以下功能将不可用：实时预览进度、右键保存图片、资产库推送\n   如需启用，请在插件管理中启用该插件。')
+                logger.dev('[Comfyui-Box Bridge] 插件已被禁用，跳过注入')
                 return
             
             js_dir = plugin_dir / "js"
@@ -1597,7 +1611,7 @@ class ComfyUIProcess:
             
             # 检查是否需要更新插件
             init_py_file = plugin_dir / "__init__.py"
-            bridge_js_file = js_dir / "comfynexus_bridge.js"
+            bridge_js_file = js_dir / "comfyui-box_bridge.js"
             
             needs_update = False
             
@@ -1620,11 +1634,11 @@ class ComfyUIProcess:
                 # 写入文件
                 init_py_file.write_text(init_py_content, encoding='utf-8')
                 bridge_js_file.write_text(bridge_js_content, encoding='utf-8')
-                self._push_log('INFO', '✅ ComfyNexus Bridge 插件已部署')
-                logger.dev('[ComfyNexus Bridge] 插件已更新')
+                self._push_log('INFO', '✅ Comfyui-Box Bridge 插件已部署')
+                logger.dev('[Comfyui-Box Bridge] 插件已更新')
             else:
-                logger.dev('[ComfyNexus Bridge] 插件已是最新版本')
+                logger.dev('[Comfyui-Box Bridge] 插件已是最新版本')
                 
         except Exception as e:
-            logger.warning(f'部署 ComfyNexus Bridge 插件失败: {e}')
-            self._push_log('WARNING', f'部署 ComfyNexus Bridge 插件失败: {e}')
+            logger.warning(f'部署 Comfyui-Box Bridge 插件失败: {e}')
+            self._push_log('WARNING', f'部署 Comfyui-Box Bridge 插件失败: {e}')

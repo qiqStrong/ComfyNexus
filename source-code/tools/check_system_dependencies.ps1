@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-    ComfyNexus Windows System Dependency Checker
+    Comfyui-Box Windows System Dependency Checker
 .DESCRIPTION
-    Check Windows system dependencies required by ComfyNexus
+    Check Windows system dependencies required by Comfyui-Box
     No Python required, can run directly
 #>
 
@@ -429,7 +429,7 @@ function Show-DetailedResults {
 
 function Main {
     Write-Host "============================================================" -ForegroundColor Cyan
-    Write-Host " ComfyNexus Windows System Dependency Checker" -ForegroundColor Cyan
+    Write-Host " Comfyui-Box Windows System Dependency Checker" -ForegroundColor Cyan
     Write-Host "============================================================" -ForegroundColor Cyan
     Write-Host " Time: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
     

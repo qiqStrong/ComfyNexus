@@ -4,7 +4,7 @@
 提供统一的路径管理功能，确保所有模块使用一致的路径配置。
 支持开发环境和生产环境的路径切换。
 
-Author: ComfyNexus 开发团队
+Author: Comfyui-Box 开发团队
 Date: 2026-02-09
 """
 
@@ -205,9 +205,9 @@ def get_user_data_dir() -> Path:
         Path: 用户数据目录的绝对路径
         
     说明：
-        - Windows: %APPDATA%/ComfyNexus
-        - Linux: ~/.local/share/ComfyNexus
-        - macOS: ~/Library/Application Support/ComfyNexus
+        - Windows: %APPDATA%/Comfyui-Box
+        - Linux: ~/.local/share/Comfyui-Box
+        - macOS: ~/Library/Application Support/Comfyui-Box
         
     注意：
         此函数返回系统级用户数据目录，适合存储用户配置和数据。
@@ -220,7 +220,7 @@ def get_user_data_dir() -> Path:
     else:  # Linux
         base = Path(os.environ.get('XDG_DATA_HOME', Path.home() / ".local" / "share"))
     
-    user_data_dir = base / "ComfyNexus"
+    user_data_dir = base / "Comfyui-Box"
     user_data_dir.mkdir(parents=True, exist_ok=True)
     
     return user_data_dir
@@ -234,8 +234,8 @@ def get_version_file() -> Path:
         Path: 版本文件的绝对路径
         
     说明：
-        - 开发环境：<项目根>/comfy_nexus_version.py
-        - 打包环境：<_internal>/comfy_nexus_version.py
+        - 开发环境：<项目根>/comfyui_box_version.py
+        - 打包环境：<_internal>/comfyui_box_version.py
         
     Example:
         >>> version_file = get_version_file()
@@ -243,10 +243,10 @@ def get_version_file() -> Path:
     """
     if getattr(sys, 'frozen', False):
         # 打包环境：版本文件在 _internal 目录
-        return get_internal_dir() / "comfy_nexus_version.py"
+        return get_internal_dir() / "comfyui_box_version.py"
     else:
         # 开发环境：版本文件在项目根目录
-        return get_project_root() / "comfy_nexus_version.py"
+        return get_project_root() / "comfyui_box_version.py"
 
 
 def get_dev_update_source_file() -> Path:
@@ -263,7 +263,7 @@ def get_dev_update_source_file() -> Path:
     用途：
         用于测试更新功能，文件内容为自定义仓库地址
         格式: https://<token>@github.com/<owner>/<repo>
-        例如: https://ghp_xxxx@github.com/qiqStrong/ComfyNexus_VM
+        例如: https://ghp_xxxx@github.com/qiqStrong/Comfyui-Box_VM
     """
     return get_project_root() / "dev"
 

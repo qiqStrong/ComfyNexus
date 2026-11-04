@@ -3,7 +3,7 @@
 用于验证多显示器环境下的窗口位置管理功能
 
 测试说明：
-1. 此测试需要在 ComfyNexus 应用运行时执行
+1. 此测试需要在 Comfyui-Box 应用运行时执行
 2. 测试会验证窗口边界检查和重置功能
 3. 所有操作都在主线程中执行，符合 Windows 线程亲和性要求
 """
@@ -31,12 +31,12 @@ def test_window_bounds():
     print("=" * 60)
     
     # 查找窗口
-    print("\n[测试 1] 查找 ComfyNexus 窗口...")
-    hwnd = find_window_by_title("ComfyNexus", max_retries=3, retry_interval=0.5)
+    print("\n[测试 1] 查找 Comfyui-Box 窗口...")
+    hwnd = find_window_by_title("Comfyui-Box", max_retries=3, retry_interval=0.5)
     
     if not hwnd or hwnd == 0:
-        print("❌ 未找到 ComfyNexus 窗口")
-        print("   请先启动 ComfyNexus 应用")
+        print("❌ 未找到 Comfyui-Box 窗口")
+        print("   请先启动 Comfyui-Box 应用")
         return False
     
     print(f"✓ 找到窗口，句柄: {hwnd}")
@@ -121,7 +121,7 @@ def test_api_methods():
     print("API 方法测试说明")
     print("=" * 60)
     print("""
-在 ComfyNexus 应用的浏览器控制台中执行以下代码进行测试：
+在 Comfyui-Box 应用的浏览器控制台中执行以下代码进行测试：
 
 1. 测试重置窗口位置：
    await window.pywebview.api.resetWindowPosition()
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         print("\n" + "=" * 60)
         print("多显示器窗口边界检查测试")
         print("=" * 60)
-        print("\n注意：此测试需要在 ComfyNexus 应用运行时执行")
+        print("\n注意：此测试需要在 Comfyui-Box 应用运行时执行")
         print("      所有操作都在主线程中执行，符合 Windows 线程亲和性要求")
         print()
         

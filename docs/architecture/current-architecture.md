@@ -1,4 +1,4 @@
-# ComfyNexus 现状架构（Container 级）
+# Comfyui-Box 现状架构（Container 级）
 
 **受众**：项目维护者，以及接手 Phase 1 执行方案的 agent。
 **目的**：给整改项一个可定位的落点，避免「安全问题」停留在文字描述层面。
@@ -7,7 +7,7 @@
 
 ## 阅读顺序
 
-1. `Landscape` — ComfyNexus 与它托管/依赖的外部系统各有几个。
+1. `Landscape` — Comfyui-Box 与它托管/依赖的外部系统各有几个。
 2. `SystemContext` — 用户与外部系统如何跨过产品边界。
 3. `Containers` — **本文件重点**：一个 Python 进程内部的责任单元与信任边界。
 
@@ -21,9 +21,9 @@ Windows 绿色免安装桌面应用：**单个 Python 进程**（`main.py:378`�
 
 ### 1. 进程边界只有两个（外加更新器）
 
-- `ComfyNexus.exe`：一个 Python 进程持有桌面壳、Flask 线程、桥、领域服务、各类后台线程（`main.py:597-598, 805-817, 1203`）。
+- `Comfyui-Box.exe`：一个 Python 进程持有桌面壳、Flask 线程、桥、领域服务、各类后台线程（`main.py:597-598, 805-817, 1203`）。
 - `ComfyUI`：由 `comfyui_process.py:362` 以 `subprocess.Popen` 启动的独立进程，默认 `127.0.0.1:8188`（`comfyui_process.py:40`）。
-- `ComfyNexusUpdater_v1.0.exe`：onefile 独立进程，仅在更新时被拉起（`update_controller.py:258-286`）。
+- `Comfyui-BoxUpdater_v1.0.exe`：onefile 独立进程，仅在更新时被拉起（`update_controller.py:258-286`）。
 
 意义：不存在「前端直连后端 API」的微服务拓扑；把安全面想成「HTTP 服务面」会漏掉真正的通道（桥）。
 

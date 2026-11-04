@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""ComfyNexus PyInstaller spec (onedir 模式)
+"""Comfyui-Box PyInstaller spec (onedir 模式)
 
 - 入口: source-code/backend/main.py
 - exe 图标: source-code/icon.ico
@@ -48,7 +48,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='ComfyNexus',
+    name='Comfyui-Box',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -69,5 +69,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='ComfyNexus',
+    name='Comfyui-Box',
 )

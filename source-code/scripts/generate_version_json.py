@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 REPO_OWNER = "qiqStrong"
-REPO_NAME = "ComfyNexus"
+REPO_NAME = "Comfyui-Box"
 
 def get_proxy_from_settings():
     """从项目设置中读取代理配置"""

@@ -18,7 +18,7 @@ from ...utils.logger import app_logger as logger
 # 写入 YAML 时置于首行的归属标记。
 # 只有带该标记的文件才被认为是本应用生成的，允许在「无配置」时清理；
 # 用户手工维护的 extra_model_paths.yaml 不含此标记，任何情况下都不会被自动删除。
-YAML_OWNERSHIP_MARKER = "# 本文件由 ComfyNexus 自动生成，界面配置变更时会被覆盖"
+YAML_OWNERSHIP_MARKER = "# 本文件由 Comfyui-Box 自动生成，界面配置变更时会被覆盖"
 
 
 

@@ -1,4 +1,4 @@
-# ComfyNexus 自动打包脚本
+# Comfyui-Box 自动打包脚本
 # 用途: 自动化构建前端、打包后端、创建发布包
 # 使用方法: .\build.ps1 -Version "1.0.2"
 
@@ -59,7 +59,7 @@ Write-ColorOutput @"
 
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║              ComfyNexus 自动打包脚本                      ║
+║              Comfyui-Box 自动打包脚本                      ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
 
@@ -272,15 +272,15 @@ try {
         
         Write-Success "后端打包完成"
         
-        # 检查生成的 exe（onedir 模式下在 ComfyNexus 子目录中）
-        $ExePath = Join-Path $DistDir "ComfyNexus\ComfyNexus.exe"
+        # 检查生成的 exe（onedir 模式下在 Comfyui-Box 子目录中）
+        $ExePath = Join-Path $DistDir "Comfyui-Box\Comfyui-Box.exe"
         if (Test-Path $ExePath) {
             $ExeSize = (Get-Item $ExePath).Length / 1MB
-            Write-Success "生成的 exe 文件: ComfyNexus.exe ($([math]::Round($ExeSize, 2)) MB)"
+            Write-Success "生成的 exe 文件: Comfyui-Box.exe ($([math]::Round($ExeSize, 2)) MB)"
             
             # 显示目录结构
-            $ComfyNexusDir = Join-Path $DistDir "ComfyNexus"
-            $AllFiles = Get-ChildItem -Path $ComfyNexusDir -Recurse -File
+            $ComfyuiBoxDir = Join-Path $DistDir "Comfyui-Box"
+            $AllFiles = Get-ChildItem -Path $ComfyuiBoxDir -Recurse -File
             $TotalSize = ($AllFiles | Measure-Object -Property Length -Sum).Sum / 1MB
             Write-Info "打包目录包含 $($AllFiles.Count) 个文件，总大小 $([math]::Round($TotalSize, 2)) MB"
         } else {
@@ -301,20 +301,20 @@ try {
         $UpdaterDistDir = Join-Path $BuildOutputDir "updater_dist"
         
         if (Test-Path $UpdaterSpecFile) {
-            Write-Info "打包 ComfyNexusUpdater_v1.0.exe..."
+            Write-Info "打包 Comfyui-BoxUpdater_v1.0.exe..."
             
             & $PyInstaller $UpdaterSpecFile --clean --distpath $UpdaterDistDir --workpath (Join-Path $BuildDir "updater")
             
             if ($LASTEXITCODE -eq 0) {
-                $UpdaterExe = Join-Path $UpdaterDistDir "ComfyNexusUpdater_v1.0.exe"
+                $UpdaterExe = Join-Path $UpdaterDistDir "Comfyui-BoxUpdater_v1.0.exe"
                 if (Test-Path $UpdaterExe) {
-                    $TargetDir = Join-Path $DistDir "ComfyNexus"
+                    $TargetDir = Join-Path $DistDir "Comfyui-Box"
                     Copy-Item $UpdaterExe $TargetDir -Force
-                    Write-Success "ComfyNexusUpdater_v1.0.exe 已复制到发布目录"
+                    Write-Success "Comfyui-BoxUpdater_v1.0.exe 已复制到发布目录"
                     Remove-Item $UpdaterDistDir -Recurse -Force
                     Write-Info "已清理中间目录: updater_dist"
                 } else {
-                    Write-Warning-Custom "ComfyNexusUpdater_v1.0.exe 未生成，跳过"
+                    Write-Warning-Custom "Comfyui-BoxUpdater_v1.0.exe 未生成，跳过"
                 }
             } else {
                 Write-Warning-Custom "更新器打包失败，跳过"
@@ -366,13 +366,13 @@ try {
     $Duration = $EndTime - $StartTime
     
     # 收集文件信息
-    $OnedirPath = Join-Path $DistDir "ComfyNexus"
+    $OnedirPath = Join-Path $DistDir "Comfyui-Box"
     if (Test-Path $OnedirPath) {
         # onedir 模式
-        $ExePath = Join-Path $OnedirPath "ComfyNexus.exe"
+        $ExePath = Join-Path $OnedirPath "Comfyui-Box.exe"
     } else {
         # onefile 模式
-        $ExePath = Join-Path $DistDir "ComfyNexus.exe"
+        $ExePath = Join-Path $DistDir "Comfyui-Box.exe"
     }
     $ExeSize = (Get-Item $ExePath).Length / 1MB
     # ZipSize 已经从 New-ReleasePackage 返回
@@ -380,7 +380,7 @@ try {
     # 生成报告
     $ReportPath = Join-Path $BuildOutputDir "build_report.txt"
     $Report = @"
-ComfyNexus 构建报告
+Comfyui-Box 构建报告
 ==================
 
 构建信息
@@ -397,7 +397,7 @@ ComfyNexus 构建报告
 
 构建产物
 --------
-exe 文件: ComfyNexus.exe ($([math]::Round($ExeSize, 2)) MB)
+exe 文件: Comfyui-Box.exe ($([math]::Round($ExeSize, 2)) MB)
 发布包: $ZipName ($([math]::Round($ZipSize, 2)) MB)
 
 文件路径
@@ -435,7 +435,7 @@ Python 版本: $(& $VenvPython --version)
     
     Write-Info "版本: $Version"
     Write-Info "构建产物目录: $BuildOutputDir"
-    Write-Info "exe 文件: ComfyNexus.exe ($([math]::Round($ExeSize, 2)) MB)"
+    Write-Info "exe 文件: Comfyui-Box.exe ($([math]::Round($ExeSize, 2)) MB)"
     Write-Info "发布包: $ZipName ($([math]::Round($ZipSize, 2)) MB)"
     Write-Info "构建耗时: $([math]::Round($Duration.TotalSeconds, 2)) 秒"
     Write-Host ""

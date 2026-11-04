@@ -1,5 +1,5 @@
 """
-Environment manager for ComfyNexus.
+Environment manager for Comfyui-Box.
 
 This module provides core functionality for managing ComfyUI environments,
 including adding, deleting, updating, and switching environments.

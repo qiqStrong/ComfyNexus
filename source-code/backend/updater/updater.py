@@ -1,5 +1,5 @@
 """
-ComfyNexus GUI 更新器
+Comfyui-Box GUI 更新器
 
 使用 webview 创建美观的更新界面
 支持单例运行、完整备份、自升级
@@ -42,7 +42,7 @@ if sys.platform == "win32":
                 }
             }
         }
-        config_dir = os.path.join(tempfile.gettempdir(), "ComfyNexus")
+        config_dir = os.path.join(tempfile.gettempdir(), "Comfyui-Box")
         os.makedirs(config_dir, exist_ok=True)
         config_path = os.path.join(config_dir, "updater.runtimeconfig.json")
         with open(config_path, "w") as f:
@@ -77,7 +77,7 @@ if sys.platform == "win32":
             installer = os.path.join(config_dir, "dotnet8-runtime.exe")
             try:
                 ctx = ssl.create_default_context()
-                req = urllib.request.Request(url, headers={"User-Agent": "ComfyNexus/1.0"})
+                req = urllib.request.Request(url, headers={"User-Agent": "Comfyui-Box/1.0"})
                 with urllib.request.urlopen(req, context=ctx, timeout=300) as resp:
                     with open(installer, "wb") as f:
                         while True:
@@ -175,9 +175,9 @@ BACKUP_EXCLUDE_PREFIXES = [
     'tools/mingit',     # 新位置（exe 同级目录）
 ]
 
-MUTEX_NAME = "Global\\ComfyNexus_Updater_SingleInstance"
+MUTEX_NAME = "Global\\Comfyui-Box_Updater_SingleInstance"
 
-EXPECTED_ROOT = "ComfyNexus"
+EXPECTED_ROOT = "Comfyui-Box"
 
 # ========== 解压安全边界 ==========
 # 更新包来自网络，必须当成不可信输入：
@@ -195,7 +195,7 @@ def _member_relative_path(member: str, root_folder: Optional[str]) -> Optional[s
     把 zip 成员名转换成相对 target_dir 的安全相对路径。
 
     Args:
-        member: zip 内的成员名（可能带 `ComfyNexus/` 前缀）
+        member: zip 内的成员名（可能带 `Comfyui-Box/` 前缀）
         root_folder: 已识别出的包根目录名，命中则剥离
 
     Returns:
@@ -310,7 +310,7 @@ def release_mutex():
 def setup_logger():
     """设置日志 - 使用系统临时目录避免文件占用问题"""
     try:
-        log_dir = Path(tempfile.gettempdir()) / 'ComfyNexus_Updater_Logs'
+        log_dir = Path(tempfile.gettempdir()) / 'Comfyui-Box_Updater_Logs'
         log_dir.mkdir(parents=True, exist_ok=True)
         
         old_logs = sorted(log_dir.glob('updater_*.log'), key=lambda p: p.stat().st_mtime, reverse=True)
@@ -551,7 +551,7 @@ class UpdaterAPI:
             self._cleanup(zip_path)
             logger.debug("清理完成")
             
-            version_file = target_dir / "_internal" / "comfy_nexus_version.py"
+            version_file = target_dir / "_internal" / "comfyui_box_version.py"
             if version_file.exists():
                 content = version_file.read_text(encoding='utf-8')
                 for line in content.splitlines():
@@ -597,7 +597,7 @@ class UpdaterAPI:
         """
         try:
             timestamp = int(time.time())
-            backup_base = Path(tempfile.gettempdir()) / 'ComfyNexus_Backups'
+            backup_base = Path(tempfile.gettempdir()) / 'Comfyui-Box_Backups'
             backup_base.mkdir(parents=True, exist_ok=True)
             
             old_backups = sorted(backup_base.glob('backup_*'), key=lambda p: p.stat().st_mtime, reverse=True)
@@ -890,7 +890,7 @@ def get_html(icon_base64: str) -> str:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ComfyNexus 更新器</title>
+    <title>Comfyui-Box 更新器</title>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         html, body {{ overflow: hidden; height: 100%; }}
@@ -1057,7 +1057,7 @@ def get_html(icon_base64: str) -> str:
 </head>
 <body>
     <div class="title-bar pywebview-drag-region">
-        <div class="title-text">ComfyNexus 更新器</div>
+        <div class="title-text">Comfyui-Box 更新器</div>
         <div class="window-controls">
             <button id="close-btn">✕</button>
         </div>
@@ -1070,7 +1070,7 @@ def get_html(icon_base64: str) -> str:
     
     <div class="header">
             <div class="logo">{icon_html}</div>
-            <h1 class="title">ComfyNexus 更新器</h1>
+            <h1 class="title">Comfyui-Box 更新器</h1>
             <p class="subtitle" id="subtitle">准备更新...</p>
         </div>
         <div class="content" id="content">
@@ -1306,7 +1306,7 @@ def relocate_to_temp() -> bool:
     
     current_exe = Path(sys.executable)
     
-    temp_dir = Path(tempfile.gettempdir()) / 'ComfyNexus_Updater'
+    temp_dir = Path(tempfile.gettempdir()) / 'Comfyui-Box_Updater'
     temp_exe = temp_dir / 'Updater.exe'
     
     if current_exe == temp_exe:
@@ -1362,7 +1362,7 @@ def _cleanup_old_temp_updaters(temp_dir: Path, current_exe: Optional[Path]):
 def main():
     """更新器主函数"""
     logger.info("=" * 60)
-    logger.info("ComfyNexus 更新器启动")
+    logger.info("Comfyui-Box 更新器启动")
     logger.info("=" * 60)
     
     if not acquire_mutex():
@@ -1386,7 +1386,7 @@ def main():
         
         # 设置临时 WebView2 用户数据目录，避免与主应用冲突
         import tempfile
-        error_webview2_dir = Path(tempfile.gettempdir()) / "ComfyNexus_updater_webview2"
+        error_webview2_dir = Path(tempfile.gettempdir()) / "Comfyui-Box_updater_webview2"
         error_webview2_dir.mkdir(parents=True, exist_ok=True)
         os.environ['WEBVIEW2_USER_DATA_FOLDER'] = str(error_webview2_dir)
         
@@ -1394,7 +1394,7 @@ def main():
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>ComfyNexus 更新器</title>
+    <title>Comfyui-Box 更新器</title>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         html, body {{ overflow: hidden; }}
@@ -1516,7 +1516,7 @@ def main():
 </head>
 <body>
     <div class="title-bar pywebview-drag-region">
-        <div class="title-text">ComfyNexus 更新器</div>
+        <div class="title-text">Comfyui-Box 更新器</div>
         <div class="window-controls">
             <button id="close-btn">✕</button>
         </div>
@@ -1530,7 +1530,7 @@ def main():
     <div class="container">
         <div class="logo">❌</div>
         <h1 class="title">无法直接运行</h1>
-        <p class="message">此程序由 ComfyNexus 主程序自动调用，<br>请勿直接运行。</p>
+        <p class="message">此程序由 Comfyui-Box 主程序自动调用，<br>请勿直接运行。</p>
     </div>
     
     <script>
@@ -1543,7 +1543,7 @@ def main():
 </html>'''
         
         try:
-            webview.create_window('ComfyNexus 更新器', html=error_html, width=420, height=320, 
+            webview.create_window('Comfyui-Box 更新器', html=error_html, width=420, height=320, 
                                   resizable=False, frameless=True)
             webview.start(debug=False, gui='edgechromium')
         except Exception as e:
@@ -1585,7 +1585,7 @@ def main():
     
     logger.info("创建 webview 窗口")
     window = webview.create_window(
-        'ComfyNexus 更新器',
+        'Comfyui-Box 更新器',
         html=get_html(icon_base64),
         js_api=api,
         width=480,

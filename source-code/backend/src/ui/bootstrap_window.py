@@ -31,7 +31,7 @@ def get_bootstrap_html() -> str:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ComfyNexus - Git 配置</title>
+    <title>Comfyui-Box - Git 配置</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { overflow: hidden; height: 100%; }
@@ -268,7 +268,7 @@ def get_bootstrap_html() -> str:
 </head>
 <body>
     <div class="title-bar pywebview-drag-region">
-        <div class="title-text">ComfyNexus 配置引导</div>
+        <div class="title-text">Comfyui-Box 配置引导</div>
         <div class="window-controls">
             <button id="close-btn">✕</button>
         </div>
@@ -289,7 +289,7 @@ def get_bootstrap_html() -> str:
                 </svg>
             </div>
             <h1 class="title">Git 配置</h1>
-            <p class="subtitle">ComfyNexus 需要 Git 来管理插件</p>
+            <p class="subtitle">Comfyui-Box 需要 Git 来管理插件</p>
         </div>
         
         <div class="status-message" id="statusMessage">检测中...</div>
@@ -605,7 +605,7 @@ def show_bootstrap_window(git_manager: GitManager) -> bool:
     api = BootstrapAPI(git_manager, on_complete)
     
     window = webview.create_window(
-        title='ComfyNexus - Git 配置',
+        title='Comfyui-Box - Git 配置',
         html=get_bootstrap_html(),
         width=500,
         height=720,

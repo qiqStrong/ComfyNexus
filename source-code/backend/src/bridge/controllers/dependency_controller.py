@@ -214,7 +214,7 @@ def _get_pypi_mirror_config(mirror_source: str) -> dict:
 class DependencyController:
     """依赖管理控制器"""
     
-    PYTORCH_MAPPING_URL = "https://raw.githubusercontent.com/qiqStrong/ComfyNexus/refs/heads/main/pytorch_mapping.json"
+    PYTORCH_MAPPING_URL = "https://raw.githubusercontent.com/qiqStrong/Comfyui-Box/refs/heads/main/pytorch_mapping.json"
     _pytorch_mapping_cache = None
     _pytorch_mapping_cache_time = None
     _pytorch_mapping_cache_ttl = 86400
@@ -260,7 +260,7 @@ class DependencyController:
         
         try:
             url = cls.PYTORCH_MAPPING_URL
-            request_headers = {'User-Agent': 'ComfyNexus/1.0'}
+            request_headers = {'User-Agent': 'Comfyui-Box/1.0'}
             verify_ssl = True
             
             try:
@@ -3830,7 +3830,7 @@ class DependencyController:
             lines.append(f"- {conflict_icon} **{package_name}** ({installed_version})\n")
         
         lines.append(f"\n---\n")
-        lines.append(f"*此报告由 ComfyNexus 依赖管理模块自动生成*\n")
+        lines.append(f"*此报告由 Comfyui-Box 依赖管理模块自动生成*\n")
         
         return ''.join(lines)
     

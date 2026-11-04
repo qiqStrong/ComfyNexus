@@ -1,4 +1,4 @@
-// ComfyNexus 现状架构基线（C4 Container 级）
+// Comfyui-Box 现状架构基线（C4 Container 级）
 // 生成日期: 2026-11-01 · 分支: fix/security-hardening @ 88bdb15
 // 证据规则: 每个元素/关系的 properties 带 sourceRefs 与 confidence。
 //   confidence=high 直接代码/配置证据；medium 多处信号一致但无直接确认；low 由命名或目录结构推断。
@@ -7,11 +7,11 @@
 //   基线 88bdb15 与工作区在会话期间发生分叉（密钥存储改造在途未提交），
 //   凡 state 含 "uncommitted" 的元素只描述工作区，不代表基线已具备该能力。
 
-workspace "ComfyNexus" "ComfyUI 本地管理平台 · 现状架构基线（Container 级）" {
+workspace "Comfyui-Box" "ComfyUI 本地管理平台 · 现状架构基线（Container 级）" {
 
   model {
 
-    user = person "ComfyUI 创作者" "在 Windows 上使用 ComfyNexus 托管并调优本地 ComfyUI" {
+    user = person "ComfyUI 创作者" "在 Windows 上使用 Comfyui-Box 托管并调优本地 ComfyUI" {
       location "Local"
     }
 
@@ -44,7 +44,7 @@ workspace "ComfyNexus" "ComfyUI 本地管理平台 · 现状架构基线（Conta
       properties { state "current" confidence "medium" sourceRefs "README.md:104" }
     }
 
-    nexus = softwareSystem "ComfyNexus" "绿色免安装的 Windows 桌面应用（PyInstaller onedir）" {
+    nexus = softwareSystem "Comfyui-Box" "绿色免安装的 Windows 桌面应用（PyInstaller onedir）" {
 
       shell = container "桌面壳进程" "单实例互斥 + 预检 + 创建窗口 + 启动各后台线程；一个 Python 进程持有除 ComfyUI 外的一切" "Python 3.12 / pywebview / WebView2(EdgeChromium)" {
         tags "OwnProcess"
@@ -90,7 +90,7 @@ workspace "ComfyNexus" "ComfyUI 本地管理平台 · 现状架构基线（Conta
         }
       }
 
-      updater = container "独立更新器进程" "ComfyNexusUpdater_v1.0.exe（onefile），由主程序以 argv[zip, target, main_exe] 拉起，执行备份→解压→清理→回滚" "Python / PyInstaller onefile" {
+      updater = container "独立更新器进程" "Comfyui-BoxUpdater_v1.0.exe（onefile），由主程序以 argv[zip, target, main_exe] 拉起，执行备份→解压→清理→回滚" "Python / PyInstaller onefile" {
         tags "OwnProcess", "RiskSurface"
         properties {
           state "current"
@@ -201,7 +201,7 @@ workspace "ComfyNexus" "ComfyUI 本地管理平台 · 现状架构基线（Conta
       }
     }
 
-    systemContext nexus "SystemContext" "系统上下文：ComfyNexus 边界与外部参与者" {
+    systemContext nexus "SystemContext" "系统上下文：Comfyui-Box 边界与外部参与者" {
       include *
       autolayout {
         rankdir LR

@@ -72,7 +72,7 @@ class ComfyCoreNodesManager:
             logger.info("正在获取 ComfyUI Core 节点列表...")
             
             url = NODE_MAP_URL
-            headers = {'User-Agent': 'ComfyNexus/1.0'}
+            headers = {'User-Agent': 'Comfyui-Box/1.0'}
             verify_ssl = True
             
             try:

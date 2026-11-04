@@ -110,7 +110,7 @@
 
 ### R-06 · 更新源硬编码上游仓库，与本 fork 发布链路错位 · 中 / high 置信
 
-**证据**：`src/core/updater/update_checker.py:16` —— `VERSION_JSON_URL = https://raw.githubusercontent.com/Allen-xxa/ComfyNexus/main/version.json`，`download_url` 亦指向 `github.com/Allen-xxa/…`（根 `version.json:4`）。本仓库远端为 `origin = https://github.com/qiqStrong/ComfyNexus.git`（实测 `git remote -v`）。
+**证据**：`src/core/updater/update_checker.py:16` —— `VERSION_JSON_URL = https://raw.githubusercontent.com/Allen-xxa/Comfyui-Box/main/version.json`，`download_url` 亦指向 `github.com/Allen-xxa/…`（根 `version.json:4`）。本仓库远端为 `origin = https://github.com/qiqStrong/Comfyui-Box.git`（实测 `git remote -v`）。
 
 **已处置（2026-11-02）**：全仓库 `Allen-xxa` 引用已替换为 `qiqStrong`，共 22 处，覆盖更新源、数据源
 （`comfyui_api_nodes.json` / `pytorch_mapping.json` / `comfyui_releases.json`）、前端 GitHub 跳转与

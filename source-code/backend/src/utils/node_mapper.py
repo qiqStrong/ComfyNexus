@@ -23,7 +23,7 @@ from backend.src.utils.logger import app_logger as logger
 
 
 EXTENSION_NODE_MAP_URL = "https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/extension-node-map.json"
-COMFYREGISTRY_API_URL = "https://raw.githubusercontent.com/qiqStrong/ComfyNexus/main/comfyui_api_nodes.json"
+COMFYREGISTRY_API_URL = "https://raw.githubusercontent.com/qiqStrong/Comfyui-Box/main/comfyui_api_nodes.json"
 CACHE_FILE_NAME = "extension_node_map.json"
 CACHE_DURATION = 24 * 60 * 60
 CACHE_VERSION = 4
@@ -260,7 +260,7 @@ class NodeMapper:
             import requests
             
             url = EXTENSION_NODE_MAP_URL
-            headers = {'User-Agent': 'ComfyNexus/1.0'}
+            headers = {'User-Agent': 'Comfyui-Box/1.0'}
             verify_ssl = True
             
             try:
@@ -306,7 +306,7 @@ class NodeMapper:
             import requests
             
             url = COMFYREGISTRY_API_URL
-            headers = {'User-Agent': 'ComfyNexus/1.0'}
+            headers = {'User-Agent': 'Comfyui-Box/1.0'}
             verify_ssl = True
             
             try:

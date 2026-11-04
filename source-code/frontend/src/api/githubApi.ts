@@ -11,7 +11,7 @@ export interface GitHubRelease {
 
 const MAX_RELEASES = 3
 
-export const GITHUB_RELEASES_URL = 'https://github.com/qiqStrong/ComfyNexus/releases'
+export const GITHUB_RELEASES_URL = 'https://github.com/qiqStrong/Comfyui-Box/releases'
 
 /**
  * 用随应用分发的 version.json 兜底生成一条更新日志。
@@ -44,7 +44,7 @@ export async function fetchReleases(): Promise<GitHubRelease[]> {
   try {
     const result = await window.pywebview.api.get_github_releases(
       'qiqStrong',
-      'ComfyNexus',
+      'Comfyui-Box',
       MAX_RELEASES
     )
 

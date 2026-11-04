@@ -26,7 +26,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='ComfyNexusDiag',
+    name='Comfyui-BoxDiag',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

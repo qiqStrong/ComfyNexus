@@ -35,7 +35,7 @@ print("-" * 60)
 from backend.src.utils.logger import setup_logger
 
 logger = setup_logger(
-    name="ComfyNexus",
+    name="Comfyui-Box",
     log_dir=None,
     console=True,
     level="DEBUG"

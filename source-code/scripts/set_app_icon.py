@@ -26,7 +26,7 @@ sys.path.insert(0, str(SOURCE_ROOT))
 
 from backend.src.utils.icon_builder import build_app_icons, describe_ico  # noqa: E402
 
-DEFAULT_SOURCE = SOURCE_ROOT / "assets" / "icons" / "comfynexus-v4.png"
+DEFAULT_SOURCE = SOURCE_ROOT / "assets" / "icons" / "comfyui-box-v4.png"
 ICO_PATH = SOURCE_ROOT / "icon.ico"
 PNG_PATH = SOURCE_ROOT / "assets" / "icon.png"
 FAVICON_PATH = SOURCE_ROOT / "frontend" / "public" / "favicon.ico"
@@ -34,7 +34,7 @@ APP_ICON_PATH = SOURCE_ROOT / "frontend" / "public" / "app-icon.png"
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="生成 ComfyNexus 应用图标")
+    parser = argparse.ArgumentParser(description="生成 Comfyui-Box 应用图标")
     parser.add_argument(
         "source",
         nargs="?",

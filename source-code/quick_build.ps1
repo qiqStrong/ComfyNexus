@@ -1,4 +1,4 @@
-# ComfyNexus 快速构建脚本入口
+# Comfyui-Box 快速构建脚本入口
 # 用途: 从项目根目录调用快速构建脚本
 # 
 # 使用方法:
@@ -14,7 +14,7 @@ $ErrorActionPreference = "Stop"
 Write-Host ""
 Write-Host "╔═══════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
 Write-Host "║                                                           ║" -ForegroundColor Cyan
-Write-Host "║              ComfyNexus 快速构建脚本                      ║" -ForegroundColor Cyan
+Write-Host "║              Comfyui-Box 快速构建脚本                      ║" -ForegroundColor Cyan
 Write-Host "║                                                           ║" -ForegroundColor Cyan
 Write-Host "╚═══════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
@@ -85,15 +85,15 @@ Write-Host ""
 # 询问 3: 是否指定版本号
 # ============================================
 Write-Host "是否指定版本号？" -ForegroundColor Cyan
-Write-Host "  直接回车: 从 comfy_nexus_version.py 文件读取" -ForegroundColor Gray
+Write-Host "  直接回车: 从 comfyui_box_version.py 文件读取" -ForegroundColor Gray
 Write-Host "  输入版本号: 例如 1.0.2" -ForegroundColor Gray
 Write-Host ""
 
-$versionResponse = Read-Host "请输入版本号（默认: 从 comfy_nexus_version.py 文件读取）"
+$versionResponse = Read-Host "请输入版本号（默认: 从 comfyui_box_version.py 文件读取）"
 
 if ([string]::IsNullOrWhiteSpace($versionResponse)) {
     $Version = ""
-    Write-Host "✓ 将从 comfy_nexus_version.py 文件读取版本号" -ForegroundColor Green
+    Write-Host "✓ 将从 comfyui_box_version.py 文件读取版本号" -ForegroundColor Green
 } else {
     $Version = $versionResponse
     Write-Host "✓ 使用指定版本号: $Version" -ForegroundColor Green

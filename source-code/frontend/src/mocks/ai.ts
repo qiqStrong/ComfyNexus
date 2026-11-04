@@ -13,7 +13,7 @@ export const mockChatHistory: ChatMessage[] = [
   {
     id: '1',
     role: 'assistant',
-    content: '你好！我是 ComfyNexus AI 助手。我可以帮助你分析日志、工作流和插件代码。有什么我可以帮助你的吗？',
+    content: '你好！我是 Comfyui-Box AI 助手。我可以帮助你分析日志、工作流和插件代码。有什么我可以帮助你的吗？',
     timestamp: '2024-01-21T10:00:00Z'
   },
   {

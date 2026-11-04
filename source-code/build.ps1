@@ -1,4 +1,4 @@
-# ComfyNexus 构建脚本入口
+# Comfyui-Box 构建脚本入口
 # 用途: 从项目根目录调用构建脚本
 # 使用方法: .\build.ps1 [-Version "1.0.2"] [-SkipFrontend] [-SkipClean] [-SkipTests] [-VerboseOutput]
 

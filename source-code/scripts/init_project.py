@@ -1,5 +1,5 @@
 """
-ComfyNexus 项目初始化脚本
+Comfyui-Box 项目初始化脚本
 一次性创建所有必要的文件夹和 __init__.py 文件
 """
 
@@ -158,7 +158,7 @@ build/
 def main():
     """主函数"""
     print("=" * 60)
-    print("ComfyNexus 项目初始化")
+    print("Comfyui-Box 项目初始化")
     print("=" * 60)
     
     create_directories()

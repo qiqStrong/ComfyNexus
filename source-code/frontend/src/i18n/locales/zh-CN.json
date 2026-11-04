@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "ComfyNexus",
+    "name": "Comfyui-Box",
     "title": "ComfyUI 管理平台"
   },
   "common": {
@@ -442,7 +442,7 @@
     }
   },
   "home": {
-    "title": "欢迎使用 ComfyNexus",
+    "title": "欢迎使用 Comfyui-Box",
     "subtitle": "现代化的 ComfyUI 管理工具",
     "systemStatus": "系统状态",
     "currentEnv": "当前环境",
@@ -618,7 +618,7 @@
       "createFailed": "创建环境失败"
     },
     "guide": {
-      "addFirst": "欢迎使用 ComfyNexus",
+      "addFirst": "欢迎使用 Comfyui-Box",
       "selectOne": "请选择环境",
       "pleaseAdd": "请先添加一个 ComfyUI 环境以开始使用",
       "pleaseSelect": "请从标题栏选择一个环境以继续",
@@ -662,7 +662,7 @@
       "currentEditorArgs": "当前编辑器中的启动参数",
       "saveSuccess": "配置保存成功",
       "enterPresetName": "请输入预设名称",
-      "terminalTitle": "geek_mode.sh — ComfyNexus",
+      "terminalTitle": "geek_mode.sh — Comfyui-Box",
       "terminalPlaceholder": "# 在此输入启动参数，每行一个\n# 例如：\n--lowvram\n--use-pytorch-cross-attention",
       "presetSaveSuccess": "极客预设保存成功",
       "createInProgress": "已有正在创建的预设，请先保存或取消",
@@ -1481,7 +1481,7 @@
       "unknown": "未知",
       "desktopVersion": "桌面版",
       "cudaVisibleDevicesExample": "CUDA_VISIBLE_DEVICES=0",
-      "terminalTitle": "system_env.sh — ComfyNexus",
+      "terminalTitle": "system_env.sh — Comfyui-Box",
     "geek": {
       "paramFormat": "参数格式说明",
       "paramError": "参数格式错误",
@@ -2650,7 +2650,7 @@
       "tokenPlaceholder": "ghp_xxxx 或 github_pat_xxxx",
       "howToGetTitle": "如何获取 GitHub Personal Access Token：",
       "step1": "点击下方按钮跳转到 GitHub Token 创建页面",
-      "step2": "填写 Token 描述（如：ComfyNexus）",
+      "step2": "填写 Token 描述（如：Comfyui-Box）",
       "step3": "选择权限：repo 和 read:user 即可",
       "step4": "点击 \"Generate token\" 生成并复制 Token",
       "openTokenPage": "打开 GitHub Token 创建页面",
@@ -2672,7 +2672,7 @@
       "levelPlaceholder": "选择日志级别",
       "fileLocation": "日志文件位置",
       "fileLocationDesc": "日志文件保存在项目根目录的 logs 文件夹中",
-      "fileNameFormat": "文件命名格式：comfynexus_YYYYMMDD.log",
+      "fileNameFormat": "文件命名格式：comfyui-box_YYYYMMDD.log",
       "autoCleanup": "系统会自动清理30天前的日志文件",
       "levelDescription": "日志级别说明",
       "debugExplanation": "DEBUG：详细的调试信息，包括变量值、函数调用等",
@@ -2771,7 +2771,7 @@
     },
     "enableGithubToken": "启用 GitHub API Token",
     "clickToCreateToken": "点击下方按钮跳转到 GitHub Token 创建页面",
-    "fillTokenDesc": "填写 Token 描述（如：ComfyNexus）",
+    "fillTokenDesc": "填写 Token 描述（如：Comfyui-Box）",
     "selectPermissions": "选择权限：repo 和 read:user 即可",
     "mirror": {
       "title": "GitHub 镜像加速",
@@ -3067,8 +3067,8 @@
     "projectIntro": {
       "title": "关于项目",
       "slogan": "联结创意，驭繁就简。",
-      "description1": "ComfyNexus 是一款专为 ComfyUI 打造的次世代启动与管理终端。我们深度整合了现代 Web 技术，旨在为创作者提供极致响应、底层环境隔离与核心依赖无缝检测的全生命周期管理体验。",
-      "description2": "在这里，你只需专注于节点与工作流的创意流转，复杂的底层配置与更新维护交由 ComfyNexus 默默守护。"
+      "description1": "Comfyui-Box 是一款专为 ComfyUI 打造的次世代启动与管理终端。我们深度整合了现代 Web 技术，旨在为创作者提供极致响应、底层环境隔离与核心依赖无缝检测的全生命周期管理体验。",
+      "description2": "在这里，你只需专注于节点与工作流的创意流转，复杂的底层配置与更新维护交由 Comfyui-Box 默默守护。"
     },
     "techStack": {
       "title": "核心技术栈"
@@ -3084,9 +3084,9 @@
     },
     "disclaimer": {
       "title": "免责声明 (Disclaimer)",
-      "content": "ComfyNexus 作为一个开源/免费的辅助管理工具，仅提供运行环境的封装与流程管理。本软件不包含、也不分发任何受版权保护的 AI 模型、权重文件或违法违规内容。用户在使用本工具下载或运行第三方插件、模型时，请自行遵守相关开源协议与当地法律法规。对于因使用本工具或第三方插件导致的数据丢失或环境损坏，本团队不承担直接或连带责任。"
+      "content": "Comfyui-Box 作为一个开源/免费的辅助管理工具，仅提供运行环境的封装与流程管理。本软件不包含、也不分发任何受版权保护的 AI 模型、权重文件或违法违规内容。用户在使用本工具下载或运行第三方插件、模型时，请自行遵守相关开源协议与当地法律法规。对于因使用本工具或第三方插件导致的数据丢失或环境损坏，本团队不承担直接或连带责任。"
     },
-    "copyright": "© 2026 ComfyNexus Team. All rights reserved.",
+    "copyright": "© 2026 Comfyui-Box Team. All rights reserved.",
     "poweredBy": "Powered by Open Source Community.",
     "updateToast": "检查更新功能即将上线，敬请期待",
     "sponsor": {
@@ -3547,7 +3547,7 @@
     "comfyUIStatusCard": "ComfyUIStatusCard",
     "folderShortcutBar": "FolderShortcutBar",
     "creatorRecommendationGrid": "CreatorRecommendationGrid",
-    "comfyNexus": "ComfyNexus",
+    "comfyNexus": "Comfyui-Box",
     "addEnv": "添加环境",
     "civitaiApiKeyConfigured": "已在设置中配置 Civitai API Key",
     "civitaiApiKey": "Civitai API Key",
@@ -3607,7 +3607,7 @@
     "generateAndCopyToken": "点击 \"Generate token\" 生成并复制 Token",
     "logsFolder": "logs",
     "logsFolderHint": "日志文件保存在项目根目录的 logs 文件夹中",
-    "logFileFormat": "comfynexus_YYYYMMDD.log",
+    "logFileFormat": "comfyui-box_YYYYMMDD.log",
     "debugLabel": "DEBUG：",
     "debugDesc": "DEBUG：详细的调试信息，包括变量值、函数调用等",
     "infoLabel": "INFO：",
@@ -3870,7 +3870,7 @@
     "diskFull": "磁盘空间不足，请清理磁盘后重试",
     "dialogUnavailable": "文件对话框不可用，请使用浏览器默认下载功能",
     "saveFailedDetail": "保存失败，请查看日志了解详情",
-    "welcome": "欢迎使用 ComfyNexus",
+    "welcome": "欢迎使用 Comfyui-Box",
     "currentEnv": "当前环境",
     "coreVersion": "核心版本",
     "desktopVersion": "桌面版",

@@ -34,7 +34,7 @@ MANIFEST
 *.manifest
 *.spec
 # 例外：打包配置是源码而非产物。缺了它，新 clone 的仓库无法复现正式包。
-!source-code/ComfyNexus.spec
+!source-code/Comfyui-Box.spec
 
 # Installer logs
 pip-log.txt
@@ -216,7 +216,8 @@ __marimo__/
 # WorkBuddy 助手工作区（记忆、截图等本地数据）
 .workbuddy-ai/
 
-# 运行环境检测工具解压产物（ComfyNexusDiag.exe 由 backend/scripts/diagnose_system.py + ComfyNexusDiag.spec 构建，不入库）
+# 运行环境检测工具解压产物（Comfyui-BoxDiag.exe 由 backend/scripts/diagnose_system.py + Comfyui-BoxDiag.spec 构建，不入库）
+Comfyui-Box运行环境检测/
 ComfyNexus运行环境检测/
 
 # 运行期数据（用户提示词库索引与示意图，属本机状态，不入库）

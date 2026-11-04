@@ -1,5 +1,5 @@
 """
-ComfyNexus 主应用入口
+Comfyui-Box 主应用入口
 """
 
 import sys
@@ -111,11 +111,11 @@ if _runtime_dir.exists():
             os.environ['PATH'] = str(_vcruntime_dir) + os.pathsep + os.environ.get('PATH', '')
         safe_print(f"[启动] VC++ Runtime: {_vcruntime_dir}")
 
-    os.environ['COMFYNEXUS_FULL_MODE'] = '1'
-    os.environ['COMFYNEXUS_RUNTIME_DIR'] = str(_runtime_dir)
+    os.environ['COMFYUI_BOX_FULL_MODE'] = '1'
+    os.environ['COMFYUI_BOX_RUNTIME_DIR'] = str(_runtime_dir)
 else:
-    os.environ.pop('COMFYNEXUS_FULL_MODE', None)
-    os.environ.pop('COMFYNEXUS_RUNTIME_DIR', None)
+    os.environ.pop('COMFYUI_BOX_FULL_MODE', None)
+    os.environ.pop('COMFYUI_BOX_RUNTIME_DIR', None)
     _webview2_valid = False
 # ==========================================
 
@@ -381,11 +381,11 @@ def main():
     if sys.platform == "win32":
         from backend.src.utils.single_instance import ensure_single_instance
         
-        is_first, instance_manager = ensure_single_instance("ComfyNexus")
+        is_first, instance_manager = ensure_single_instance("Comfyui-Box")
         
         if not is_first:
             safe_print("=" * 60)
-            safe_print("[警告] ComfyNexus 已在运行中")
+            safe_print("[警告] Comfyui-Box 已在运行中")
             safe_print("已激活已存在的窗口，当前实例将退出")
             safe_print("=" * 60)
             return
@@ -393,7 +393,7 @@ def main():
         safe_print("[启动] 单例检查通过，开始启动应用...")
     
     logger = setup_logger(
-        name="ComfyNexus",
+        name="Comfyui-Box",
         log_dir=None,
         console=True,
         level="INFO"
@@ -407,7 +407,7 @@ def main():
     migrate_from_internal(logger)
     cleanup_old_updater(logger)
     
-    _bootstrap_completed = os.environ.get('COMFYNEXUS_BOOTSTRAP_COMPLETED') == '1'
+    _bootstrap_completed = os.environ.get('COMFYUI_BOX_BOOTSTRAP_COMPLETED') == '1'
     if not _bootstrap_completed:
         git_status = _git_manager.check_availability()
         if not git_status.available:
@@ -445,7 +445,7 @@ def main():
             cmd = [sys.executable]
             if not getattr(sys, 'frozen', False):
                 cmd.append(__file__)
-            os.environ['COMFYNEXUS_BOOTSTRAP_COMPLETED'] = '1'
+            os.environ['COMFYUI_BOX_BOOTSTRAP_COMPLETED'] = '1'
             flags = _bootstrap_sp.CREATE_NO_WINDOW if hasattr(_bootstrap_sp, 'CREATE_NO_WINDOW') else 0
             _bootstrap_sp.Popen(cmd, creationflags=flags)
             return
@@ -508,7 +508,7 @@ def main():
             print(f"[警告] 配置读取失败: success={settings_result.get('success')}")
         
         logger.info("=" * 60)
-        logger.info("ComfyNexus 应用启动")
+        logger.info("Comfyui-Box 应用启动")
         logger.info(f"日志级别: {logger.level}")
         
         # 记录 Git 环境配置
@@ -536,12 +536,12 @@ def main():
         logger.info("安全模式已启用，GPU 禁用参数已通过源码 patch 注入")
     
     # 配置 WebView2 用户数据文件夹（用于保存下载路径等偏好设置）
-    # 使用 %LOCALAPPDATA%\ComfyNexus\webview2 避免非 ASCII 路径导致的问题
+    # 使用 %LOCALAPPDATA%\Comfyui-Box\webview2 避免非 ASCII 路径导致的问题
     # （如桌面路径含中文时 WebView2 初始化异常）
     # %LOCALAPPDATA% 不需要管理员权限，不会被磁盘清理工具删除
     local_app_data = os.environ.get('LOCALAPPDATA')
     if local_app_data:
-        user_data_dir = Path(local_app_data) / 'ComfyNexus' / 'webview2'
+        user_data_dir = Path(local_app_data) / 'Comfyui-Box' / 'webview2'
     else:
         user_data_dir = base_path / 'data' / 'webview2'
     user_data_dir.mkdir(parents=True, exist_ok=True)
@@ -561,7 +561,7 @@ def main():
     index_html = dist_dir / "index.html"
     
     safe_print("=" * 60)
-    safe_print("[启动] ComfyNexus 启动中...")
+    safe_print("[启动] Comfyui-Box 启动中...")
     safe_print("=" * 60)
     safe_print(f"[调试] 调试信息:")
     safe_print(f"   sys.frozen: {getattr(sys, 'frozen', False)}")
@@ -807,7 +807,7 @@ def main():
     # 创建窗口（连接到自定义HTTP服务器）
     # 注意：pywebview 使用逻辑像素（在 DPI 感知模式下）
     window = webview.create_window(
-        title='ComfyNexus',
+        title='Comfyui-Box',
         url=http_server.get_url(),  # 使用自定义服务器URL
         width=logical_width,
         height=logical_height,
@@ -1003,7 +1003,7 @@ def main():
                 time.sleep(retry_interval)
                 # 只认本进程自己的窗口：FindWindowW 会先命中任务栏为应用创建的
                 # TabProxyWindow（explorer 进程），样式与位置就会静默打在它身上。
-                hwnd = find_window_by_title("ComfyNexus", max_retries=1, retry_interval=0) or 0
+                hwnd = find_window_by_title("Comfyui-Box", max_retries=1, retry_interval=0) or 0
                 if hwnd:
                     break
 
@@ -1116,7 +1116,7 @@ def main():
             try:
                 from backend.src.utils.window_icon import apply_icon_to_window_by_title
 
-                apply_icon_to_window_by_title('ComfyNexus', _icon_arg, retries=10, interval=0.1)
+                apply_icon_to_window_by_title('Comfyui-Box', _icon_arg, retries=10, interval=0.1)
             except Exception as e:
                 logger.warning(f"[on_webview_ready] 应用窗口图标失败: {e}")
 
@@ -1124,7 +1124,7 @@ def main():
             from backend.src.utils.window_bounds import find_window_by_title
 
             max_retries = 5
-            main_hwnd = find_window_by_title("ComfyNexus", max_retries=max_retries, retry_interval=0.1) or 0
+            main_hwnd = find_window_by_title("Comfyui-Box", max_retries=max_retries, retry_interval=0.1) or 0
 
             if main_hwnd:
                 floating_window_manager.set_main_hwnd(main_hwnd)

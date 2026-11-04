@@ -1,4 +1,4 @@
-# ComfyNexus 构建工具函数库
+# Comfyui-Box 构建工具函数库
 # 用途: 提供可复用的构建工具函数
 # 版本: 1.0.0
 
@@ -93,10 +93,10 @@ function Write-Info {
 function Get-ProjectVersion {
     <#
     .SYNOPSIS
-    从 comfy_nexus_version.py 文件读取项目版本号
+    从 comfyui_box_version.py 文件读取项目版本号
     
     .DESCRIPTION
-    读取项目根目录的 comfy_nexus_version.py 文件，解析 __version__ 变量
+    读取项目根目录的 comfyui_box_version.py 文件，解析 __version__ 变量
     
     .OUTPUTS
     System.String
@@ -106,7 +106,7 @@ function Get-ProjectVersion {
     $version = Get-ProjectVersion
     #>
     $ProjectRoot = Split-Path -Parent $PSScriptRoot
-    $VersionFile = Join-Path $ProjectRoot "comfy_nexus_version.py"
+    $VersionFile = Join-Path $ProjectRoot "comfyui_box_version.py"
     if (Test-Path $VersionFile) {
         $content = Get-Content $VersionFile -Raw
         if ($content -match '__version__\s*=\s*[\"'']([^\"'']*)[\"'']') {
@@ -175,7 +175,7 @@ function Test-ExeFile {
     包含验证结果的哈希表
     
     .EXAMPLE
-    $result = Test-ExeFile -Path ".\dist\ComfyNexus.exe"
+    $result = Test-ExeFile -Path ".\dist\Comfyui-Box.exe"
     if ($result.Valid) {
         Write-Host "exe 文件有效，大小: $($result.Size) 字节"
     }
@@ -216,7 +216,7 @@ function Test-ZipFile {
     包含验证结果的哈希表
     
     .EXAMPLE
-    $result = Test-ZipFile -Path ".\ComfyNexus-v1.0.0-win64.zip"
+    $result = Test-ZipFile -Path ".\Comfyui-Box-v1.0.0-win64.zip"
     if ($result.Valid) {
         Write-Host "ZIP 文件有效，包含 $($result.EntryCount) 个条目"
     }
@@ -274,7 +274,7 @@ function Get-FileSize {
     文件大小（字节）
     
     .EXAMPLE
-    $size = Get-FileSize -Path ".\dist\ComfyNexus.exe"
+    $size = Get-FileSize -Path ".\dist\Comfyui-Box.exe"
     #>
     param([string]$Path)
     
@@ -380,16 +380,16 @@ function New-ReleasePackage {
     # 2. 验证关键文件（支持 onedir 模式）
     Write-Info "验证关键文件..."
     
-    # 检查是否是 onedir 模式（有 ComfyNexus 子目录）
-    $OnedirPath = Join-Path $DistDir "ComfyNexus"
+    # 检查是否是 onedir 模式（有 Comfyui-Box 子目录）
+    $OnedirPath = Join-Path $DistDir "Comfyui-Box"
     if (Test-Path $OnedirPath) {
         # onedir 模式
-        $ExePath = Join-Path $OnedirPath "ComfyNexus.exe"
+        $ExePath = Join-Path $OnedirPath "Comfyui-Box.exe"
         $IsOnedir = $true
         Write-Info "检测到 onedir 模式"
     } else {
         # onefile 模式
-        $ExePath = Join-Path $DistDir "ComfyNexus.exe"
+        $ExePath = Join-Path $DistDir "Comfyui-Box.exe"
         $IsOnedir = $false
         Write-Info "检测到 onefile 模式"
     }
@@ -397,11 +397,11 @@ function New-ReleasePackage {
     $ExeCheck = Test-ExeFile -Path $ExePath
     
     if (-not $ExeCheck.Valid) {
-        throw "ComfyNexus.exe 验证失败: $($ExeCheck.Message)"
+        throw "Comfyui-Box.exe 验证失败: $($ExeCheck.Message)"
     }
     
     $ExeSizeMB = $ExeCheck.Size / 1MB
-    Write-Success "ComfyNexus.exe 存在 ($([math]::Round($ExeSizeMB, 2)) MB)"
+    Write-Success "Comfyui-Box.exe 存在 ($([math]::Round($ExeSizeMB, 2)) MB)"
     
     # 3. 生成 ZIP 文件名
     # 先去掉 v 前缀（如果有），避免出现 vv1.0.2
@@ -412,9 +412,9 @@ function New-ReleasePackage {
     
     # 如果版本号以 RC 开头，则不添加 v 前缀
     if ($CleanVersion -like "RC*") {
-        $ZipName = "ComfyNexus-$CleanVersion-win64.zip"
+        $ZipName = "Comfyui-Box-$CleanVersion-win64.zip"
     } else {
-        $ZipName = "ComfyNexus-v$CleanVersion-win64.zip"
+        $ZipName = "Comfyui-Box-v$CleanVersion-win64.zip"
     }
     $ZipPath = Join-Path $OutputDir $ZipName
     
@@ -431,9 +431,9 @@ function New-ReleasePackage {
             Write-Info "尝试使用新文件名..."
             $Timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
             if ($CleanVersion -like "RC*") {
-                $ZipName = "ComfyNexus-$CleanVersion-win64-$Timestamp.zip"
+                $ZipName = "Comfyui-Box-$CleanVersion-win64-$Timestamp.zip"
             } else {
-                $ZipName = "ComfyNexus-v$CleanVersion-win64-$Timestamp.zip"
+                $ZipName = "Comfyui-Box-v$CleanVersion-win64-$Timestamp.zip"
             }
             $ZipPath = Join-Path $OutputDir $ZipName
             Write-Info "新文件名: $ZipName"
@@ -445,8 +445,8 @@ function New-ReleasePackage {
     try {
         # 根据模式选择压缩路径
         if ($IsOnedir) {
-            # onedir 模式：压缩整个 ComfyNexus 目录
-            $CompressPath = Join-Path $DistDir "ComfyNexus"
+            # onedir 模式：压缩整个 Comfyui-Box 目录
+            $CompressPath = Join-Path $DistDir "Comfyui-Box"
         } else {
             # onefile 模式：压缩所有文件
             $CompressPath = "$DistDir\*"
@@ -506,18 +506,18 @@ function New-ReleasePackage {
             
             # 检查关键文件
             if ($IsOnedir) {
-                # onedir 模式：检查 ComfyNexus/ComfyNexus.exe
-                $HasExe = $Zip.Entries | Where-Object { $_.FullName -like "ComfyNexus/ComfyNexus.exe" -or $_.FullName -like "ComfyNexus\ComfyNexus.exe" }
+                # onedir 模式：检查 Comfyui-Box/Comfyui-Box.exe
+                $HasExe = $Zip.Entries | Where-Object { $_.FullName -like "Comfyui-Box/Comfyui-Box.exe" -or $_.FullName -like "Comfyui-Box\Comfyui-Box.exe" }
                 if ($HasExe) {
-                    Write-Success "✓ ComfyNexus/ComfyNexus.exe 已包含"
+                    Write-Success "✓ Comfyui-Box/Comfyui-Box.exe 已包含"
                 } else {
-                    Write-Warning-Custom "✗ ComfyNexus/ComfyNexus.exe 未找到"
+                    Write-Warning-Custom "✗ Comfyui-Box/Comfyui-Box.exe 未找到"
                 }
                 
-                # 检查前端文件（在 ComfyNexus/_internal/dist/ 目录下）
+                # 检查前端文件（在 Comfyui-Box/_internal/dist/ 目录下）
                 $HasDistFiles = $Zip.Entries | Where-Object { 
-                    $_.FullName -like "ComfyNexus/_internal/dist/*" -or 
-                    $_.FullName -like "ComfyNexus\_internal\dist\*" 
+                    $_.FullName -like "Comfyui-Box/_internal/dist/*" -or 
+                    $_.FullName -like "Comfyui-Box\_internal\dist\*" 
                 }
                 if ($HasDistFiles) {
                     $DistFileCount = ($HasDistFiles | Measure-Object).Count
@@ -526,12 +526,12 @@ function New-ReleasePackage {
                     Write-Warning-Custom "✗ 前端文件未找到"
                 }
             } else {
-                # onefile 模式：检查 ComfyNexus.exe
-                $HasExe = $Zip.Entries | Where-Object { $_.Name -eq "ComfyNexus.exe" }
+                # onefile 模式：检查 Comfyui-Box.exe
+                $HasExe = $Zip.Entries | Where-Object { $_.Name -eq "Comfyui-Box.exe" }
                 if ($HasExe) {
-                    Write-Success "✓ ComfyNexus.exe 已包含"
+                    Write-Success "✓ Comfyui-Box.exe 已包含"
                 } else {
-                    Write-Warning-Custom "✗ ComfyNexus.exe 未找到"
+                    Write-Warning-Custom "✗ Comfyui-Box.exe 未找到"
                 }
                 
                 # 检查前端文件（在根目录）

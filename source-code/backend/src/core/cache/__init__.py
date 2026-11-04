@@ -3,7 +3,7 @@
 
 提供统一的缓存管理功能。
 
-Author: ComfyNexus 开发团队
+Author: Comfyui-Box 开发团队
 Date: 2026-03-25
 """
 

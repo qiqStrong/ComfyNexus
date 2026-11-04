@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "ComfyNexus",
+    "name": "Comfyui-Box",
     "title": "ComfyUI Management Platform"
   },
   "common": {
@@ -425,7 +425,7 @@
     }
   },
   "home": {
-    "title": "Welcome to ComfyNexus",
+    "title": "Welcome to Comfyui-Box",
     "subtitle": "Modern ComfyUI Management Tool",
     "systemStatus": "System Status",
     "currentEnv": "Current Environment",
@@ -600,7 +600,7 @@
       "createFailed": "Failed to create environment"
     },
     "guide": {
-      "addFirst": "Welcome to ComfyNexus",
+      "addFirst": "Welcome to Comfyui-Box",
       "selectOne": "Please Select an Environment",
       "pleaseAdd": "Please add a ComfyUI environment to get started",
       "pleaseSelect": "Please select an environment from the title bar to continue",
@@ -644,7 +644,7 @@
       "currentEditorArgs": "Startup parameters from current editor",
       "saveSuccess": "Configuration saved successfully",
       "enterPresetName": "Please enter preset name",
-      "terminalTitle": "geek_mode.sh — ComfyNexus",
+      "terminalTitle": "geek_mode.sh — Comfyui-Box",
       "terminalPlaceholder": "# Enter startup parameters here, one per line\n# Example:\n--lowvram\n--use-pytorch-cross-attention",
       "presetSaveSuccess": "Geek preset saved successfully",
       "createInProgress": "A preset is being created, please save or cancel first",
@@ -683,7 +683,7 @@
       "supportComment": "Supports blank lines and comments starting with #",
       "argExample": "Example: --port 8188",
       "argTip": "💡 Tip: Blank lines and comments don't affect preset matching, you can freely add comments to organize parameters",
-      "terminalTitle": "launch_args.conf — ComfyNexus",
+      "terminalTitle": "launch_args.conf — Comfyui-Box",
       "terminalPlaceholder": "# Enter startup arguments here..."
     },
     "configSaveFailed": "Failed to save configuration",
@@ -1375,7 +1375,7 @@
       "unknown": "Unknown",
       "desktopVersion": "Desktop",
       "cudaVisibleDevicesExample": "CUDA_VISIBLE_DEVICES=0",
-      "terminalTitle": "system_env.sh — ComfyNexus",
+      "terminalTitle": "system_env.sh — Comfyui-Box",
     "geek": {
       "paramFormat": "Parameter Format",
       "paramError": "Parameter Format Error",
@@ -2548,7 +2548,7 @@
       "tokenPlaceholder": "ghp_xxxx or github_pat_xxxx",
       "howToGetTitle": "How to get GitHub Personal Access Token:",
       "step1": "Click the button below to go to GitHub Token creation page",
-      "step2": "Fill in Token description (e.g.: ComfyNexus)",
+      "step2": "Fill in Token description (e.g.: Comfyui-Box)",
       "step3": "Select permissions: repo and read:user are sufficient",
       "step4": "Click \"Generate token\" to generate and copy the Token",
       "openTokenPage": "Open GitHub Token Creation Page",
@@ -2570,7 +2570,7 @@
       "levelPlaceholder": "Select log level",
       "fileLocation": "Log File Location",
       "fileLocationDesc": "Log files are saved in the logs folder in the project root directory",
-      "fileNameFormat": "File naming format: comfynexus_YYYYMMDD.log",
+      "fileNameFormat": "File naming format: comfyui-box_YYYYMMDD.log",
       "autoCleanup": "Log files older than 30 days are automatically cleaned up",
       "levelDescription": "Log Level Description",
       "debugExplanation": "DEBUG: Detailed debug info including variable values, function calls, etc.",
@@ -2669,7 +2669,7 @@
     },
     "enableGithubToken": "Enable GitHub API Token",
     "clickToCreateToken": "Click button below to create GitHub Token",
-    "fillTokenDesc": "Fill Token description (e.g., ComfyNexus)",
+    "fillTokenDesc": "Fill Token description (e.g., Comfyui-Box)",
     "selectPermissions": "Select permissions: repo and read:user",
     "mirror": {
       "title": "GitHub Mirror Acceleration",
@@ -2965,8 +2965,8 @@
     "projectIntro": {
       "title": "About Project",
       "slogan": "Connect creativity, simplify complexity.",
-      "description1": "ComfyNexus is a next-generation launcher and management terminal designed specifically for ComfyUI. We deeply integrate modern web technologies to provide creators with an ultimate responsive experience, isolated underlying environments, and seamless dependency detection throughout the entire lifecycle.",
-      "description2": "Here, you only need to focus on the creative flow of nodes and workflows, while ComfyNexus silently handles the complex underlying configurations and update maintenance."
+      "description1": "Comfyui-Box is a next-generation launcher and management terminal designed specifically for ComfyUI. We deeply integrate modern web technologies to provide creators with an ultimate responsive experience, isolated underlying environments, and seamless dependency detection throughout the entire lifecycle.",
+      "description2": "Here, you only need to focus on the creative flow of nodes and workflows, while Comfyui-Box silently handles the complex underlying configurations and update maintenance."
     },
     "techStack": {
       "title": "Core Tech Stack"
@@ -2982,9 +2982,9 @@
     },
     "disclaimer": {
       "title": "Disclaimer",
-      "content": "ComfyNexus is an open-source/free auxiliary management tool that only provides runtime environment encapsulation and process management. This software does not contain or distribute any copyrighted AI models, weight files, or illegal content. When using this tool to download or run third-party plugins or models, please comply with relevant open-source licenses and local laws and regulations. The team assumes no direct or joint liability for data loss or environment damage caused by the use of this tool or third-party plugins."
+      "content": "Comfyui-Box is an open-source/free auxiliary management tool that only provides runtime environment encapsulation and process management. This software does not contain or distribute any copyrighted AI models, weight files, or illegal content. When using this tool to download or run third-party plugins or models, please comply with relevant open-source licenses and local laws and regulations. The team assumes no direct or joint liability for data loss or environment damage caused by the use of this tool or third-party plugins."
     },
-    "copyright": "© 2026 ComfyNexus Team. All rights reserved.",
+    "copyright": "© 2026 Comfyui-Box Team. All rights reserved.",
     "poweredBy": "Powered by Open Source Community.",
     "updateToast": "Update check feature coming soon, stay tuned",
     "sponsor": {
@@ -3322,7 +3322,7 @@
     "diskFull": "Disk space insufficient, please clean up and try again",
     "dialogUnavailable": "File dialog unavailable, please use browser default download",
     "saveFailedDetail": "Save failed, please check logs for details",
-    "welcome": "Welcome to ComfyNexus",
+    "welcome": "Welcome to Comfyui-Box",
     "currentEnv": "Current Environment",
     "coreVersion": "Core Version",
     "desktopVersion": "Desktop",

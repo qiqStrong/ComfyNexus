@@ -1,4 +1,4 @@
-# ComfyNexus Backend Test Dependencies
+# Comfyui-Box Backend Test Dependencies
 # Python 3.12.x
 #
 # 重要提示：

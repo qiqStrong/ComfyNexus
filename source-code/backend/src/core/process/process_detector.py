@@ -78,8 +78,8 @@ class ProcessDetector:
                 # 检查是否是 ComfyUI 的 main.py 文件
                 if "main.py" in arg_lower:
                     # 检查 main.py 所在的目录路径
-                    # 如果路径中包含 comfyui（但不是 ComfyNexus 这样的项目名）
-                    if "comfyui" in arg_lower and "comfynexus" not in arg_lower:
+                    # 如果路径中包含 comfyui（但不是 Comfyui-Box 这样的项目名）
+                    if "comfyui" in arg_lower and "comfyui-box" not in arg_lower:
                         has_comfyui_indicator = True
                         break
                     # 或者检查是否在典型的 ComfyUI 目录结构中

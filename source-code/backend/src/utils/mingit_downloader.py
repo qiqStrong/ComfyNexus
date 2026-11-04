@@ -96,7 +96,7 @@ def get_latest_mingit_release() -> MinGitReleaseInfo:
     try:
         url = "https://api.github.com/repos/git-for-windows/git/releases/latest"
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ComfyNexus",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Comfyui-Box",
             "Accept": "application/vnd.github.v3+json"
         }
         
@@ -636,7 +636,7 @@ class MinGitDownloader:
         
         try:
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ComfyNexus"
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Comfyui-Box"
             }
             
             try:
@@ -748,7 +748,7 @@ class MinGitDownloader:
         
         try:
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ComfyNexus",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Comfyui-Box",
                 "Range": f"bytes={existing_size}-"
             }
             

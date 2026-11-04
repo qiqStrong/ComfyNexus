@@ -11,7 +11,7 @@ a = Analysis(
     datas=[
         ('dist', 'dist'),
         ('assets', 'assets'),
-        ('comfy_nexus_version.py', '.'),
+        ('comfyui_box_version.py', '.'),
         ('backend/__init__.py', 'backend'),
         (os.path.join('backend', 'src'), os.path.join('backend', 'src')),
         (os.path.join('backend', 'models', 'nsfw.onnx'), os.path.join('models')),
@@ -22,7 +22,7 @@ a = Analysis(
     hiddenimports=[
         'webview',
         'webview.platforms.winforms',
-        'comfy_nexus_version',
+        'comfyui_box_version',
         'backend',
         'backend.src',
         'backend.src.bridge',
@@ -273,7 +273,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='ComfyNexus',
+    name='Comfyui-Box',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -296,5 +296,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='ComfyNexus',
+    name='Comfyui-Box',
 )

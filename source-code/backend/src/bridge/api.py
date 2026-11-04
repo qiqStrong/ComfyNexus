@@ -169,7 +169,7 @@ class Api:
 
         try:
             from backend.src.utils.window_bounds import find_window_by_title
-            return find_window_by_title("ComfyNexus", max_retries=1, retry_interval=0) or 0
+            return find_window_by_title("Comfyui-Box", max_retries=1, retry_interval=0) or 0
         except Exception as e:
             logger.debug(f"[_get_window_hwnd] 兜底查找句柄失败: {e}")
             return 0
@@ -1450,7 +1450,7 @@ class Api:
             logger.error(f"[get_app_version] 导入 backend 失败: {e}")
             
             if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-                version_file = Path(sys._MEIPASS) / "comfy_nexus_version.py"
+                version_file = Path(sys._MEIPASS) / "comfyui_box_version.py"
                 logger.info(f"[get_app_version] 尝试直接读取: {version_file}")
                 logger.info(f"[get_app_version] 文件存在: {version_file.exists()}")
                 if version_file.exists():
@@ -2961,7 +2961,7 @@ class Api:
         """
         停止 ComfyUI
         
-        支持停止由 ComfyNexus 启动的进程，以及外部启动的 ComfyUI 进程
+        支持停止由 Comfyui-Box 启动的进程，以及外部启动的 ComfyUI 进程
         
         Returns:
             dict: 操作结果
@@ -2970,16 +2970,16 @@ class Api:
             # 初始化进程管理器
             self.__init_process_manager()
             
-            # 首先检查是否是由 ComfyNexus 启动的进程（进程正在运行）
+            # 首先检查是否是由 Comfyui-Box 启动的进程（进程正在运行）
             if self._comfyui_process.is_running and self._comfyui_process.process:
-                # 停止由 ComfyNexus 启动的进程
+                # 停止由 Comfyui-Box 启动的进程
                 self._comfyui_process.stop()
                 return {
                     "success": True,
                     "message": "ComfyUI 已停止"
                 }
             
-            # 如果 ComfyNexus 没有启动进程，检查是否有外部进程
+            # 如果 Comfyui-Box 没有启动进程，检查是否有外部进程
             status = self._comfyui_process.get_status()
             port_available = status.get("port_available", False)
             
@@ -3514,7 +3514,7 @@ class Api:
             from backend.src.utils.logger import DEV_LEVEL
             
             # 获取日志记录器
-            logger_instance = logging.getLogger("ComfyNexus")
+            logger_instance = logging.getLogger("Comfyui-Box")
             
             # 将级别字符串转换为日志级别值
             level_value = {
@@ -3740,7 +3740,7 @@ class Api:
             logger.dev(f"[API] 获取代理配置失败: {e}")
             return None
 
-    def get_github_releases(self, owner: str = "qiqStrong", repo: str = "ComfyNexus", per_page: int = 3):
+    def get_github_releases(self, owner: str = "qiqStrong", repo: str = "Comfyui-Box", per_page: int = 3):
         """
         获取 GitHub 仓库的 Releases 列表（通过镜像代理）
         
@@ -3775,7 +3775,7 @@ class Api:
             
             url = f"https://api.github.com/repos/{owner}/{repo}/releases"
             headers = {
-                "User-Agent": "ComfyNexus/1.0",
+                "User-Agent": "Comfyui-Box/1.0",
                 "Accept": "application/vnd.github.v3+json"
             }
             
@@ -3886,7 +3886,7 @@ class Api:
         
         url = f"https://api.github.com/repos/{owner}/{repo}/commits/{branch}"
         headers = {
-            "User-Agent": "ComfyNexus/1.0",
+            "User-Agent": "Comfyui-Box/1.0",
             "Accept": "application/vnd.github.v3+json"
         }
         

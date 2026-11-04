@@ -109,7 +109,7 @@ class UpdateController:
             
             filename = download_url.split("/")[-1]
             if not filename.endswith(".zip"):
-                filename = f"ComfyNexus-{latest_version}-win64.zip"
+                filename = f"Comfyui-Box-{latest_version}-win64.zip"
             
             local_check = self._downloader.check_local_file(file_hash, filename)
             
@@ -282,8 +282,8 @@ class UpdateController:
             base_path = get_project_root()
             
             target_dir = base_path
-            main_exe = base_path / "ComfyNexus.exe"
-            updater_exe = base_path / "ComfyNexusUpdater_v1.0.exe"
+            main_exe = base_path / "Comfyui-Box.exe"
+            updater_exe = base_path / "Comfyui-BoxUpdater_v1.0.exe"
             old_updater_exe = base_path / "Updater.exe"
             
             if not updater_exe.exists() and old_updater_exe.exists():

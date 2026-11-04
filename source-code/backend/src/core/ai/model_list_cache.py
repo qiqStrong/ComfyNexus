@@ -7,7 +7,7 @@
 缓存目录：<项目根>/cache/ai_models/
 缓存文件格式：{provider}_{url_hash}.json
 
-Author: ComfyNexus 开发团队
+Author: Comfyui-Box 开发团队
 Date: 2025-02-03
 """
 

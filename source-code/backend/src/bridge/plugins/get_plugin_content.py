@@ -1,22 +1,22 @@
 """
-ComfyNexus Bridge 插件内容生成器
+Comfyui-Box Bridge 插件内容生成器
 
-提供插件的 __init__.py 和 comfynexus_bridge.js 的内容
+提供插件的 __init__.py 和 comfyui-box_bridge.js 的内容
 """
 
 INIT_PY_CONTENT = '''"""
-ComfyNexus Bridge - ComfyUI 自定义节点桥接插件
+Comfyui-Box Bridge - ComfyUI 自定义节点桥接插件
 
 功能：
-1. 提供 JS 扩展，实现与 ComfyNexus 主窗口的通信
+1. 提供 JS 扩展，实现与 Comfyui-Box 主窗口的通信
 2. 拦截图片下载，支持自定义保存路径
 3. 同步实时预览和执行状态
 
-注意：此文件由 ComfyNexus 自动部署，请勿手动修改
+注意：此文件由 Comfyui-Box 自动部署，请勿手动修改
 """
 
 BRIDGE_PLUGIN_VERSION = "__BRIDGE_PLUGIN_VERSION__"
-print("========== [ComfyNexus Bridge v__BRIDGE_PLUGIN_VERSION__] ==========")
+print("========== [Comfyui-Box Bridge v__BRIDGE_PLUGIN_VERSION__] ==========")
 
 WEB_DIRECTORY = "./js"
 
@@ -31,15 +31,15 @@ BRIDGE_PLUGIN_VERSION = "1.5.7"
 INIT_PY_CONTENT = INIT_PY_CONTENT.replace("__BRIDGE_PLUGIN_VERSION__", BRIDGE_PLUGIN_VERSION)
 
 BRIDGE_JS_CONTENT = '''/**
- * ComfyNexus Bridge - 桥接脚本
+ * Comfyui-Box Bridge - 桥接脚本
  * 
  * 功能：
- * 1. 监听 ComfyUI 事件并转发给 ComfyNexus 主窗口
+ * 1. 监听 ComfyUI 事件并转发给 Comfyui-Box 主窗口
  * 2. 拦截图片下载，支持自定义保存路径
  * 3. 提供 localStorage 同步功能
  * 4. 注入 electronAPI polyfill（桌面版兼容）
  * 
- * 注意：此文件由 ComfyNexus 自动部署，请勿手动修改
+ * 注意：此文件由 Comfyui-Box 自动部署，请勿手动修改
  */
 
 // ============================================
@@ -47,11 +47,11 @@ BRIDGE_JS_CONTENT = '''/**
 // ============================================
 (function() {
     if (window.electronAPI) {
-        console.log('[ComfyNexus Bridge] electronAPI 已存在，跳过注入');
+        console.log('[Comfyui-Box Bridge] electronAPI 已存在，跳过注入');
         return;
     }
     
-    console.log('[ComfyNexus Bridge] 注入 electronAPI polyfill（桌面版兼容）');
+    console.log('[Comfyui-Box Bridge] 注入 electronAPI polyfill（桌面版兼容）');
     
     window.electronAPI = {
         // 版本信息
@@ -64,19 +64,19 @@ BRIDGE_JS_CONTENT = '''/**
                 return 'unknown';
             }
         },
-        getElectronVersion: async () => 'N/A (ComfyNexus)',
+        getElectronVersion: async () => 'N/A (Comfyui-Box)',
         isPackaged: async () => true,
         getBasePath: async () => '',
         getPlatform: () => navigator.platform,
         getModelConfigPath: async () => '',
         
         // 文件夹操作（空实现，避免报错）
-        openLogsFolder: () => console.log('[ComfyNexus Bridge] openLogsFolder not supported'),
-        openModelsFolder: () => console.log('[ComfyNexus Bridge] openModelsFolder not supported'),
-        openOutputsFolder: () => console.log('[ComfyNexus Bridge] openOutputsFolder not supported'),
-        openInputsFolder: () => console.log('[ComfyNexus Bridge] openInputsFolder not supported'),
-        openCustomNodesFolder: () => console.log('[ComfyNexus Bridge] openCustomNodesFolder not supported'),
-        openDevTools: () => console.log('[ComfyNexus Bridge] openDevTools not supported'),
+        openLogsFolder: () => console.log('[Comfyui-Box Bridge] openLogsFolder not supported'),
+        openModelsFolder: () => console.log('[Comfyui-Box Bridge] openModelsFolder not supported'),
+        openOutputsFolder: () => console.log('[Comfyui-Box Bridge] openOutputsFolder not supported'),
+        openInputsFolder: () => console.log('[Comfyui-Box Bridge] openInputsFolder not supported'),
+        openCustomNodesFolder: () => console.log('[Comfyui-Box Bridge] openCustomNodesFolder not supported'),
+        openDevTools: () => console.log('[Comfyui-Box Bridge] openDevTools not supported'),
         
         // Config 子对象
         Config: {
@@ -171,15 +171,15 @@ let lastImageUrl = null;
 let lastRightClickImageInfo = null;
 
 app.registerExtension({
-    name: "ComfyNexus.Bridge",
+    name: "Comfyui-Box.Bridge",
     
     async setup() {
-        console.log(`[ComfyNexus Bridge] v${PLUGIN_VERSION} 初始化...`);
+        console.log(`[Comfyui-Box Bridge] v${PLUGIN_VERSION} 初始化...`);
         
         // 1. 监听进度事件
         api.addEventListener("progress", (event) => {
             window.parent.postMessage({
-                type: 'comfynexus:progress',
+                type: 'comfyui-box:progress',
                 data: event.detail
             }, "*");
         });
@@ -195,7 +195,7 @@ app.registerExtension({
         // 3. 监听执行开始事件
         api.addEventListener("execution_start", (event) => {
             window.parent.postMessage({
-                type: 'comfynexus:execution_start',
+                type: 'comfyui-box:execution_start',
                 data: event.detail
             }, "*");
         });
@@ -203,7 +203,7 @@ app.registerExtension({
         // 4. 监听执行错误事件
         api.addEventListener("execution_error", (event) => {
             window.parent.postMessage({
-                type: 'comfynexus:execution_error',
+                type: 'comfyui-box:execution_error',
                 data: event.detail
             }, "*");
         });
@@ -218,7 +218,7 @@ app.registerExtension({
         _setupLiteGraphSaveImageCallbackHijack();
         _setupSaveImageMenuHijack();
         
-        console.log(`[ComfyNexus Bridge] v${PLUGIN_VERSION} 初始化完成`);
+        console.log(`[Comfyui-Box Bridge] v${PLUGIN_VERSION} 初始化完成`);
     }
 });
 
@@ -279,11 +279,11 @@ function _setupEventListeners() {
                 }
                 
                 if (imageInfo) {
-                    console.log('[ComfyNexus Bridge] 拦截下载按钮:', imageInfo);
+                    console.log('[Comfyui-Box Bridge] 拦截下载按钮:', imageInfo);
                     
                     // 通知主窗口保存图片
                     window.parent.postMessage({
-                        type: 'comfynexus:save_image',
+                        type: 'comfyui-box:save_image',
                         data: imageInfo
                     }, '*');
                 }
@@ -306,14 +306,14 @@ function _setupEventListeners() {
                 
                 // 通知主窗口处理下载
                 window.parent.postMessage({
-                    type: 'comfynexus:save_image',
+                    type: 'comfyui-box:save_image',
                     data: {
                         filename: filename,
                         imageUrl: lastImageUrl
                     }
                 }, "*");
                 
-                console.log(`[ComfyNexus Bridge] 拦截图片下载: ${filename}`);
+                console.log(`[Comfyui-Box Bridge] 拦截图片下载: ${filename}`);
             }
         }
     }, true);
@@ -372,7 +372,7 @@ function _recordImageInfo(target) {
     const imageInfo = _getImageInfoFromElement(target);
     if (imageInfo) {
         lastRightClickImageInfo = imageInfo;
-        console.log('[ComfyNexus Bridge] 记录图片信息:', lastRightClickImageInfo);
+        console.log('[Comfyui-Box Bridge] 记录图片信息:', lastRightClickImageInfo);
     }
 }
 
@@ -465,7 +465,7 @@ function _logSaveImageContextMiss(...contexts) {
         hasOptionsExtra: !!context?.options?.extra,
         hasImgs: !!context?.imgs?.length || !!context?.node?.imgs?.length || !!context?.extra?.imgs?.length || !!context?.options?.extra?.imgs?.length
     });
-    console.warn('[ComfyNexus Bridge] Save Image 菜单点击时未找到图片信息', contexts.map(describeContext));
+    console.warn('[Comfyui-Box Bridge] Save Image 菜单点击时未找到图片信息', contexts.map(describeContext));
 }
 
 function _sendSaveImageRequest(imageInfo, logLabel) {
@@ -476,7 +476,7 @@ function _sendSaveImageRequest(imageInfo, logLabel) {
 
     console.log(logLabel, imageInfo);
     window.parent.postMessage({
-        type: 'comfynexus:save_image',
+        type: 'comfyui-box:save_image',
         data: imageInfo
     }, '*');
     return true;
@@ -494,11 +494,11 @@ function _setupLiteGraphSaveImageCallbackHijack(retryCount = 0) {
         if (retryCount < 20) {
             setTimeout(() => _setupLiteGraphSaveImageCallbackHijack(retryCount + 1), 250);
         } else {
-            console.warn('[ComfyNexus Bridge] LiteGraph ContextMenu 未就绪，Save Image 回调劫持未安装');
+            console.warn('[Comfyui-Box Bridge] LiteGraph ContextMenu 未就绪，Save Image 回调劫持未安装');
         }
         return;
     }
-    if (contextMenuPrototype.addItem.__comfynexusHijacked) return;
+    if (contextMenuPrototype.addItem.__comfyuiBoxHijacked) return;
 
     const originalAddItem = contextMenuPrototype.addItem;
     contextMenuPrototype.addItem = function(content, value, options) {
@@ -506,7 +506,7 @@ function _setupLiteGraphSaveImageCallbackHijack(retryCount = 0) {
             const menuInstance = this;
             const capturedImageInfo = _getImageInfoFromMenuContext(options, menuInstance) || _getCurrentSaveImageInfo();
             const originalLabel = String(value.title ?? value.content ?? content ?? 'Save Image').trim();
-            const patchedLabel = originalLabel === '保存图像' ? '保存图像 (ComfyNexus)' : 'Save Image (ComfyNexus)';
+            const patchedLabel = originalLabel === '保存图像' ? '保存图像 (Comfyui-Box)' : 'Save Image (Comfyui-Box)';
             value = {
                 ...value,
                 content: patchedLabel,
@@ -519,15 +519,15 @@ function _setupLiteGraphSaveImageCallbackHijack(retryCount = 0) {
                         _logSaveImageContextMiss(extra, menuOptions, menu, menuInstance, options);
                         return;
                     }
-                    _sendSaveImageRequest(imageInfo, '[ComfyNexus Bridge] 拦截 Save Image (LiteGraph callback):');
+                    _sendSaveImageRequest(imageInfo, '[Comfyui-Box Bridge] 拦截 Save Image (LiteGraph callback):');
                 }
             };
             content = patchedLabel;
         }
         return originalAddItem.call(this, content, value, options);
     };
-    contextMenuPrototype.addItem.__comfynexusHijacked = true;
-    console.log('[ComfyNexus Bridge] LiteGraph Save Image 回调劫持已启动');
+    contextMenuPrototype.addItem.__comfyuiBoxHijacked = true;
+    console.log('[Comfyui-Box Bridge] LiteGraph Save Image 回调劫持已启动');
 }
 
 function _handleSaveImageMenuAction(e, fallbackImageInfo, logLabel, closeMenu) {
@@ -539,11 +539,11 @@ function _handleSaveImageMenuAction(e, fallbackImageInfo, logLabel, closeMenu) {
     const currentImageInfo = _getCurrentSaveImageInfo();
     const saveImageInfo = currentImageInfo || fallbackImageInfo;
     if (!saveImageInfo) {
-        console.warn('[ComfyNexus Bridge] Save Image 菜单点击时未找到图片信息');
+        console.warn('[Comfyui-Box Bridge] Save Image 菜单点击时未找到图片信息');
         return;
     }
-    if (target?.dataset?.comfynexusSaving === 'true') return;
-    if (target?.dataset) target.dataset.comfynexusSaving = 'true';
+    if (target?.dataset?.comfyuiBoxSaving === 'true') return;
+    if (target?.dataset) target.dataset.comfyuiBoxSaving = 'true';
 
     _sendSaveImageRequest(saveImageInfo, logLabel);
 
@@ -572,7 +572,7 @@ function _setupSaveImageMenuHijack() {
         subtree: true
     });
     
-    console.log('[ComfyNexus Bridge] Save Image 菜单劫持已启动');
+    console.log('[Comfyui-Box Bridge] Save Image 菜单劫持已启动');
 }
 
 /**
@@ -610,7 +610,7 @@ function _checkAndHijackSaveImageMenu(element) {
         const menuItems = menu.querySelectorAll('.p-contextmenu-item');
         for (const item of menuItems) {
             const label = item.getAttribute('aria-label');
-            if (label === 'Save Image' && !item.dataset.comfynexusHijacked) {
+            if (label === 'Save Image' && !item.dataset.comfyuiBoxHijacked) {
                 saveImageItem = item;
                 break;
             }
@@ -621,7 +621,7 @@ function _checkAndHijackSaveImageMenu(element) {
         for (const item of menuItems) {
             const text = item.textContent?.trim();
             // 支持中英文
-            if ((text === '保存图像' || text === 'Save Image') && !item.dataset.comfynexusHijacked) {
+            if ((text === '保存图像' || text === 'Save Image') && !item.dataset.comfyuiBoxHijacked) {
                 saveImageItem = item;
                 break;
             }
@@ -631,7 +631,7 @@ function _checkAndHijackSaveImageMenu(element) {
     if (!saveImageItem) return;
     
     // 标记为已处理
-    saveImageItem.dataset.comfynexusHijacked = 'true';
+    saveImageItem.dataset.comfyuiBoxHijacked = 'true';
     
     // 获取图片信息
     let imageInfo = _getCurrentSaveImageInfo();
@@ -673,7 +673,7 @@ function _hijackPrimeVueMenuItem(item, imageInfo, menu) {
     const handleMenuAction = (e) => _handleSaveImageMenuAction(
         e,
         imageInfo,
-        '[ComfyNexus Bridge] 拦截 Save Image (PrimeVue):',
+        '[Comfyui-Box Bridge] 拦截 Save Image (PrimeVue):',
         () => {
             const rootMenu = menu.closest('.p-contextmenu') || menu;
             if (rootMenu && rootMenu.remove) rootMenu.remove();
@@ -686,10 +686,10 @@ function _hijackPrimeVueMenuItem(item, imageInfo, menu) {
     // 修改菜单项文本
     const textSpan = newLink.querySelector('.flex-1');
     if (textSpan) {
-        textSpan.textContent = 'Save Image (ComfyNexus)';
+        textSpan.textContent = 'Save Image (Comfyui-Box)';
     }
     
-    console.log('[ComfyNexus Bridge] 已劫持 PrimeVue Save Image 菜单项');
+    console.log('[Comfyui-Box Bridge] 已劫持 PrimeVue Save Image 菜单项');
 }
 
 /**
@@ -707,16 +707,16 @@ function _hijackLiteGraphMenuItem(item, imageInfo, menu) {
                 _logSaveImageContextMiss(extra, menuOptions, activeMenu, menu, item, originalValue);
                 return;
             }
-            _sendSaveImageRequest(saveImageInfo, '[ComfyNexus Bridge] 拦截 保存图像 (LiteGraph DOM value):');
+            _sendSaveImageRequest(saveImageInfo, '[Comfyui-Box Bridge] 拦截 保存图像 (LiteGraph DOM value):');
         };
         originalValue.content = originalValue.title = item.textContent?.trim() === '保存图像'
-            ? '保存图像 (ComfyNexus)'
-            : 'Save Image (ComfyNexus)';
+            ? '保存图像 (Comfyui-Box)'
+            : 'Save Image (Comfyui-Box)';
     } else {
         const handleMenuAction = (e) => _handleSaveImageMenuAction(
             e,
             imageInfo,
-            '[ComfyNexus Bridge] 拦截 保存图像 (LiteGraph fallback):',
+            '[Comfyui-Box Bridge] 拦截 保存图像 (LiteGraph fallback):',
             () => {
                 if (menu && menu.remove) menu.remove();
             }
@@ -727,12 +727,12 @@ function _hijackLiteGraphMenuItem(item, imageInfo, menu) {
     // 修改菜单项文本
     const originalText = item.textContent?.trim();
     if (originalText === '保存图像') {
-        item.textContent = '保存图像 (ComfyNexus)';
+        item.textContent = '保存图像 (Comfyui-Box)';
     } else {
-        item.textContent = 'Save Image (ComfyNexus)';
+        item.textContent = 'Save Image (Comfyui-Box)';
     }
     
-    console.log('[ComfyNexus Bridge] 已劫持 LiteGraph 保存图像菜单项');
+    console.log('[Comfyui-Box Bridge] 已劫持 LiteGraph 保存图像菜单项');
 }
 
 /**
@@ -743,7 +743,7 @@ function _setupMessageListener() {
         const { type, data } = event.data || {};
         
         switch (type) {
-            case 'comfynexus:get_settings':
+            case 'comfyui-box:get_settings':
                 // 返回 localStorage 设置
                 const settings = {};
                 for (let i = 0; i < localStorage.length; i++) {
@@ -751,12 +751,12 @@ function _setupMessageListener() {
                     settings[key] = localStorage.getItem(key);
                 }
                 window.parent.postMessage({
-                    type: 'comfynexus:settings',
+                    type: 'comfyui-box:settings',
                     data: settings
                 }, "*");
                 break;
                 
-            case 'comfynexus:set_settings':
+            case 'comfyui-box:set_settings':
                 // 设置 localStorage
                 if (data && typeof data === 'object') {
                     for (const [key, value] of Object.entries(data)) {
@@ -765,21 +765,21 @@ function _setupMessageListener() {
                 }
                 break;
                 
-            case 'comfynexus:ping':
+            case 'comfyui-box:ping':
                 // 心跳检测
                 window.parent.postMessage({
-                    type: 'comfynexus:pong',
+                    type: 'comfyui-box:pong',
                     data: { version: PLUGIN_VERSION }
                 }, "*");
                 break;
                 
-            case 'comfynexus:add_load_image_node':
+            case 'comfyui-box:add_load_image_node':
                 if (data && data.filename) {
                     try {
                         const LGraph = window.LiteGraph;
                         if (!LGraph) {
                             window.parent.postMessage({
-                                type: 'comfynexus:add_load_image_result',
+                                type: 'comfyui-box:add_load_image_result',
                                 data: { success: false, error: 'LiteGraph not available' }
                             }, "*");
                             break;
@@ -810,18 +810,18 @@ function _setupMessageListener() {
                             graphCanvas?.setDirty && graphCanvas.setDirty(true, true);
 
                             window.parent.postMessage({
-                                type: 'comfynexus:add_load_image_result',
+                                type: 'comfyui-box:add_load_image_result',
                                 data: { success: true, filename: data.filename }
                             }, "*");
                         } else {
                             window.parent.postMessage({
-                                type: 'comfynexus:add_load_image_result',
+                                type: 'comfyui-box:add_load_image_result',
                                 data: { success: false, error: 'Failed to create LoadImage node' }
                             }, "*");
                         }
                     } catch (err) {
                         window.parent.postMessage({
-                            type: 'comfynexus:add_load_image_result',
+                            type: 'comfyui-box:add_load_image_result',
                             data: { success: false, error: err.message }
                         }, "*");
                     }

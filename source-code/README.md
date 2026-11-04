@@ -37,13 +37,13 @@ source-code/
 ├── tools/               # 环境/依赖诊断：check_system_dependencies.(ps1|bat)、deep_check_dependencies.bat、diagnose_pythonnet.(ps1|bat)
 ├── assets/              # 图标等源资源
 ├── data/                # 运行数据（含 ai_assistant.db 等，由 backend/src/utils/paths.py 定位）
-├── logs/                # 运行日志 comfynexus_<时间戳>.log（不入库）
+├── logs/                # 运行日志 comfyui-box_<时间戳>.log（不入库）
 ├── cache/               # 缓存（不入库）
 ├── lora_data/           # LoRA 扫描数据（不入库）
 ├── backup/              # 快照/备份（不入库）
 ├── build.ps1            # 完整构建入口（参数见 打包说明.md）
 ├── quick_build.ps1      # 交互式打包入口（无参数）
-├── comfy_nexus_version.py  # 版本号唯一来源（__version__）
+├── comfyui_box_version.py  # 版本号唯一来源（__version__）
 └── pre_build_check.py   # 构建前置检查
 ```
 

@@ -384,7 +384,7 @@ export function SideBar() {
           <div className="size-8 shrink-0 overflow-hidden rounded-lg">
             <img 
               src="/app-icon.png" 
-              alt="ComfyNexus" 
+              alt="Comfyui-Box" 
               className="size-full object-cover"
             />
           </div>
@@ -393,7 +393,7 @@ export function SideBar() {
             "flex flex-col overflow-hidden transition-all duration-300",
             isCollapsed ? "max-w-0 opacity-0" : "max-w-[120px] opacity-100"
           )}>
-            <span className="text-base font-bold tracking-wide text-foreground">ComfyNexus</span>
+            <span className="text-base font-bold tracking-wide text-foreground">Comfyui-Box</span>
             <div className="mt-0.5 flex items-center gap-1.5">
               {appVersion && (
                 <span className="text-[11px] font-medium text-muted-foreground opacity-70">{appVersion}</span>
@@ -413,7 +413,7 @@ export function SideBar() {
                   <button
                     type="button"
                     onClick={() => {
-                      window.open('https://github.com/qiqStrong/ComfyNexus', '_blank', 'noopener,noreferrer')
+                      window.open('https://github.com/qiqStrong/Comfyui-Box', '_blank', 'noopener,noreferrer')
                       setGithubPopoverOpen(false)
                     }}
                     className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm hover:bg-surface-active"
@@ -424,7 +424,7 @@ export function SideBar() {
                   <button
                     type="button"
                     onClick={() => {
-                      navigator.clipboard.writeText('https://github.com/qiqStrong/ComfyNexus.git')
+                      navigator.clipboard.writeText('https://github.com/qiqStrong/Comfyui-Box.git')
                       success(t('sidebar.linkCopied'))
                       setGithubPopoverOpen(false)
                     }}

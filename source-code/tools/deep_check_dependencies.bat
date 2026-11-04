@@ -1,10 +1,10 @@
 @echo off
 setlocal enabledelayedexpansion
 chcp 65001 >nul 2>nul
-title ComfyNexus Deep Dependency Checker v2.0
+title Comfyui-Box Deep Dependency Checker v2.0
 
 :: ============================================================
-::  ComfyNexus Deep Dependency Checker v2.0
+::  Comfyui-Box Deep Dependency Checker v2.0
 ::  Checks ALL runtime dependencies at DLL granularity level
 ::  No PowerShell required - pure CMD script
 :: ============================================================
@@ -15,14 +15,14 @@ set "WARN=0"
 set "LOGFILE=%~dp0deep_check_result.log"
 
 :: Clear log file
-echo ComfyNexus Deep Dependency Check Report > "%LOGFILE%"
+echo Comfyui-Box Deep Dependency Check Report > "%LOGFILE%"
 echo Generated: %date% %time% >> "%LOGFILE%"
 echo ============================================================ >> "%LOGFILE%"
 echo. >> "%LOGFILE%"
 
 echo.
 echo ============================================================
-echo  ComfyNexus Deep Dependency Checker v2.0
+echo  Comfyui-Box Deep Dependency Checker v2.0
 echo ============================================================
 echo  Time: %date% %time%
 echo  Log:  %LOGFILE%
@@ -352,7 +352,7 @@ echo   Total: !TOTAL!, Pass: !PASS!, Fail: !FAIL!, Warn: !WARN! >> "%LOGFILE%"
 
 if !FAIL! GTR 0 (
     echo ============================================================
-    echo  REQUIRED DEPENDENCIES MISSING - ComfyNexus may not start
+    echo  REQUIRED DEPENDENCIES MISSING - Comfyui-Box may not start
     echo ============================================================
     echo.
     echo  Recommended fixes in order:
@@ -381,7 +381,7 @@ if !FAIL! GTR 0 (
     if !WARN! GTR 0 (
         echo  Some optional components are missing - non-critical.
     ) else (
-        echo  System is fully ready for ComfyNexus.
+        echo  System is fully ready for Comfyui-Box.
     )
 )
 

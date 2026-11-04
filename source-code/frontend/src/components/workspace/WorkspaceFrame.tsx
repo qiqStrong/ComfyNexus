@@ -2,7 +2,7 @@
  * 工作台 iframe 容器
  * 
  * 新架构说明：
- * - ComfyUI 通过自定义节点桥接插件（ComfyNexus_Bridge）与主窗口通信
+ * - ComfyUI 通过自定义节点桥接插件（Comfyui-Box_Bridge）与主窗口通信
  * - 不再需要反向代理，iframe 直接加载 ComfyUI
  * - WebSocket 直接连接到 ComfyUI（已启用 CORS）
  * - 图片下载通过桥接插件发送 postMessage 到主窗口
@@ -68,7 +68,7 @@ export const WorkspaceFrame = memo(({ url }: WorkspaceFrameProps) => {
         // 发送设置到桥接插件
         if (iframe.contentWindow) {
           iframe.contentWindow.postMessage({
-            type: 'comfynexus:set_settings',
+            type: 'comfyui-box:set_settings',
             data: settings
           }, '*')
           
@@ -99,34 +99,34 @@ export const WorkspaceFrame = memo(({ url }: WorkspaceFrameProps) => {
       // 处理不同类型的消息
       switch (type) {
         // 图片保存请求
-        case 'comfynexus:save_image':
+        case 'comfyui-box:save_image':
           if (data.imageUrl && data.filename) {
             await handleSaveImage(data.imageUrl, data.filename)
           }
           break
           
         // 进度更新
-        case 'comfynexus:progress':
+        case 'comfyui-box:progress':
           console.debug('[WorkspaceFrame] 进度:', data)
           break
           
         // 执行完成
-        case 'comfynexus:executed':
+        case 'comfyui-box:executed':
           console.debug('[WorkspaceFrame] 执行完成:', data)
           break
           
         // 执行开始
-        case 'comfynexus:execution_start':
+        case 'comfyui-box:execution_start':
           console.debug('[WorkspaceFrame] 执行开始:', data)
           break
           
         // 执行错误
-        case 'comfynexus:execution_error':
+        case 'comfyui-box:execution_error':
           console.error('[WorkspaceFrame] 执行错误:', data)
           break
           
         // 心跳响应
-        case 'comfynexus:pong':
+        case 'comfyui-box:pong':
           console.debug('[WorkspaceFrame] 桥接插件已连接:', data)
           break
       }
@@ -149,7 +149,7 @@ export const WorkspaceFrame = memo(({ url }: WorkspaceFrameProps) => {
           // 通知桥接插件保存成功
           if (iframeRef.current?.contentWindow) {
             iframeRef.current.contentWindow.postMessage({
-              type: 'comfynexus:save_image_result',
+              type: 'comfyui-box:save_image_result',
               data: { success: true, saved_path: result.saved_path }
             }, '*')
           }
@@ -164,7 +164,7 @@ export const WorkspaceFrame = memo(({ url }: WorkspaceFrameProps) => {
           // 通知桥接插件保存失败
           if (iframeRef.current?.contentWindow) {
             iframeRef.current.contentWindow.postMessage({
-              type: 'comfynexus:save_image_result',
+              type: 'comfyui-box:save_image_result',
               data: { success: false, error: result.message }
             }, '*')
           }

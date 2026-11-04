@@ -1,4 +1,4 @@
-# ComfyNexus 快速构建脚本
+# Comfyui-Box 快速构建脚本
 # 用途: 快速构建（跳过测试和清理）
 # 使用方法: .\quick_build.ps1 [-Version "1.0.2"] [-SkipFrontend] [-ShowConsole]
 
@@ -27,7 +27,7 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
 Write-Host ""
 Write-Host "╔═══════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
 Write-Host "║                                                           ║" -ForegroundColor Cyan
-Write-Host "║              ComfyNexus 快速构建脚本                      ║" -ForegroundColor Cyan
+Write-Host "║              Comfyui-Box 快速构建脚本                      ║" -ForegroundColor Cyan
 Write-Host "║                                                           ║" -ForegroundColor Cyan
 Write-Host "╚═══════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""

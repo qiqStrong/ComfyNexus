@@ -6,7 +6,7 @@
 使用方式：
     1. 在 main.py 中初始化日志系统：
         from backend.src.utils.logger import setup_logger
-        logger = setup_logger("ComfyNexus", level="INFO")
+        logger = setup_logger("Comfyui-Box", level="INFO")
     
     2. 在其他模块中使用日志：
         from backend.src.utils.logger import get_logger
@@ -53,7 +53,7 @@ logging.Logger.dev = dev
 
 # 常量定义
 MAX_LOG_FILE_SIZE = 100 * 1024 * 1024  # 100MB
-LOG_FILE_BASE_NAME = "comfynexus"
+LOG_FILE_BASE_NAME = "comfyui-box"
 
 
 def get_log_filename(base_dir: Path, current_date: Optional[datetime] = None) -> Path:
@@ -61,8 +61,8 @@ def get_log_filename(base_dir: Path, current_date: Optional[datetime] = None) ->
     获取当前日志文件名
     
     策略：
-    1. 基础文件名：comfynexus_YYYYMMDD_HHMMSS.log（每次启动生成新文件）
-    2. 如果文件大小超过100MB，添加序号：comfynexus_YYYYMMDD_HHMMSS_N.log
+    1. 基础文件名：comfyui-box_YYYYMMDD_HHMMSS.log（每次启动生成新文件）
+    2. 如果文件大小超过100MB，添加序号：comfyui-box_YYYYMMDD_HHMMSS_N.log
     
     Args:
         base_dir: 日志目录
@@ -105,10 +105,10 @@ def cleanup_old_logs(log_dir: Path, keep_days: int = 30, current_date: Optional[
     清理旧日志文件
     
     删除超过指定天数的日志文件。支持以下命名规范：
-    - comfynexus_YYYYMMDD.log（旧格式）
-    - comfynexus_YYYYMMDD_N.log（旧格式）
-    - comfynexus_YYYYMMDD_HHMMSS.log（新格式）
-    - comfynexus_YYYYMMDD_HHMMSS_N.log（新格式）
+    - comfyui-box_YYYYMMDD.log（旧格式）
+    - comfyui-box_YYYYMMDD_N.log（旧格式）
+    - comfyui-box_YYYYMMDD_HHMMSS.log（新格式）
+    - comfyui-box_YYYYMMDD_HHMMSS_N.log（新格式）
     
     Args:
         log_dir: 日志目录
@@ -135,8 +135,8 @@ def cleanup_old_logs(log_dir: Path, keep_days: int = 30, current_date: Optional[
     
     # 匹配日志文件的正则表达式
     import re
-    # 匹配旧格式: comfynexus_YYYYMMDD.log 或 comfynexus_YYYYMMDD_N.log
-    # 匹配新格式: comfynexus_YYYYMMDD_HHMMSS.log 或 comfynexus_YYYYMMDD_HHMMSS_N.log
+    # 匹配旧格式: comfyui-box_YYYYMMDD.log 或 comfyui-box_YYYYMMDD_N.log
+    # 匹配新格式: comfyui-box_YYYYMMDD_HHMMSS.log 或 comfyui-box_YYYYMMDD_HHMMSS_N.log
     log_pattern = re.compile(rf'^{LOG_FILE_BASE_NAME}_(\d{{8}})(?:_\d{{6}})?(?:_\d+)?\.log$')
     
     # 遍历日志目录中的所有文件
@@ -189,10 +189,10 @@ def cleanup_old_logs_by_count(log_dir: Path, keep_count: int = 10) -> int:
     
     根据文件修改时间排序，保留最新的N个文件，删除其余文件。
     支持以下命名规范：
-    - comfynexus_YYYYMMDD.log（旧格式）
-    - comfynexus_YYYYMMDD_N.log（旧格式）
-    - comfynexus_YYYYMMDD_HHMMSS.log（新格式）
-    - comfynexus_YYYYMMDD_HHMMSS_N.log（新格式）
+    - comfyui-box_YYYYMMDD.log（旧格式）
+    - comfyui-box_YYYYMMDD_N.log（旧格式）
+    - comfyui-box_YYYYMMDD_HHMMSS.log（新格式）
+    - comfyui-box_YYYYMMDD_HHMMSS_N.log（新格式）
     
     Args:
         log_dir: 日志目录
@@ -361,7 +361,7 @@ class DateRotatingFileHandler(logging.Handler):
 
 
 def setup_logger(
-    name: str = "ComfyNexus",
+    name: str = "Comfyui-Box",
     log_dir: Path = None,
     console: bool = True,
     level: str = "INFO"
@@ -518,7 +518,7 @@ def setup_logger(
     return logger
 
 
-def get_logger(name: str = "ComfyNexus") -> logging.Logger:
+def get_logger(name: str = "Comfyui-Box") -> logging.Logger:
     """
     获取日志记录器
     
@@ -571,7 +571,7 @@ def _get_app_logger() -> logging.Logger:
     """
     global _app_logger
     if _app_logger is None:
-        _app_logger = get_logger("ComfyNexus")
+        _app_logger = get_logger("Comfyui-Box")
     return _app_logger
 
 

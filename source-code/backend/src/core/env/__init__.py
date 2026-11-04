@@ -1,5 +1,5 @@
 """
-Environment management module for ComfyNexus.
+Environment management module for Comfyui-Box.
 
 This module provides functionality for managing ComfyUI environments,
 including scanning, validation, configuration, and dependency detection.

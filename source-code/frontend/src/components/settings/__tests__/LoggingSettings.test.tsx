@@ -159,7 +159,7 @@ describe('LoggingSettings 组件', () => {
 
     expect(screen.getByText('日志文件位置')).toBeInTheDocument()
     expect(screen.getByText(/logs/)).toBeInTheDocument()
-    expect(screen.getByText(/comfynexus_YYYYMMDD.log/)).toBeInTheDocument()
+    expect(screen.getByText(/comfyui-box_YYYYMMDD.log/)).toBeInTheDocument()
     expect(screen.getByText(/30天前的日志文件/)).toBeInTheDocument()
   })
 

@@ -78,7 +78,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='ComfyNexusUpdater_v1.0',
+    name='Comfyui-BoxUpdater_v1.0',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

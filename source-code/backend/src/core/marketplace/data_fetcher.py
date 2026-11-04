@@ -126,7 +126,7 @@ class PluginDataFetcher:
             请求头字典
         """
         headers = {
-            'User-Agent': 'ComfyNexus/1.0',
+            'User-Agent': 'Comfyui-Box/1.0',
             'Accept': 'application/json'
         }
         
@@ -362,9 +362,9 @@ class PluginDataFetcher:
             return None
     def _fetch_comfyui_api(self) -> Optional[List[Dict]]:
         """
-        从 ComfyNexus 维护的 GitHub 数据源获取插件数据
+        从 Comfyui-Box 维护的 GitHub 数据源获取插件数据
 
-        数据源为 ComfyNexus 通过 GitHub Action 定期从 ComfyUI 官方 API 拉取的 JSON 文件，
+        数据源为 Comfyui-Box 通过 GitHub Action 定期从 ComfyUI 官方 API 拉取的 JSON 文件，
         避免直接访问官方 API 导致的限流问题。
 
         Returns:
@@ -372,7 +372,7 @@ class PluginDataFetcher:
         """
         try:
             url, mirror_headers = self._apply_mirror_to_url(COMFYUI_API_URL, "raw")
-            marketplace_logger.debug(f"正在从 ComfyNexus 数据源获取插件数据: {url}")
+            marketplace_logger.debug(f"正在从 Comfyui-Box 数据源获取插件数据: {url}")
             
             headers = self._get_github_headers()
             headers.update(mirror_headers)
@@ -397,7 +397,7 @@ class PluginDataFetcher:
                 return None
 
         except Exception as e:
-            marketplace_logger.error(f"从 ComfyNexus 数据源获取数据失败: {e}")
+            marketplace_logger.error(f"从 Comfyui-Box 数据源获取数据失败: {e}")
             return None
     
     def _get_github_stats(self, repository: str) -> Dict:

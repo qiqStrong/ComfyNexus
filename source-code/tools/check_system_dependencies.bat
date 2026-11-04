@@ -1,9 +1,9 @@
 @echo off
 chcp 65001 >nul
-title ComfyNexus System Dependency Checker
+title Comfyui-Box System Dependency Checker
 
 echo ============================================================
-echo  ComfyNexus Windows System Dependency Checker
+echo  Comfyui-Box Windows System Dependency Checker
 echo ============================================================
 echo.
 

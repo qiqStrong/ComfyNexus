@@ -17,7 +17,7 @@ from .git_utils import GitUtils
 # 延迟获取日志记录器（避免在模块导入时触发警告）
 def _get_logger():
     """获取日志记录器（延迟初始化）"""
-    return logging.getLogger("ComfyNexus")
+    return logging.getLogger("Comfyui-Box")
 
 
 @dataclass

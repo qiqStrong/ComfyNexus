@@ -189,8 +189,8 @@ def run_preflight() -> None:
 
     try:
         # FULL 模式：检测 runtime/ 中已内置的依赖
-        is_full_mode = os.environ.get('COMFYNEXUS_FULL_MODE') == '1'
-        runtime_dir = os.environ.get('COMFYNEXUS_RUNTIME_DIR')
+        is_full_mode = os.environ.get('COMFYUI_BOX_FULL_MODE') == '1'
+        runtime_dir = os.environ.get('COMFYUI_BOX_RUNTIME_DIR')
 
         if is_full_mode and runtime_dir:
             runtime_path = Path(runtime_dir)
@@ -216,7 +216,7 @@ def run_preflight() -> None:
                     continue
                 items.append(check_func())
             except Exception as e:
-                print(f"[ComfyNexus] Check failed: {check_func.__name__}: {e}")
+                print(f"[Comfyui-Box] Check failed: {check_func.__name__}: {e}")
                 items.append(PreflightItem(check_func.__name__, False, f"Check error: {e}", "", [], ""))
 
         failed = [it for it in items if not it.passed]
@@ -226,7 +226,7 @@ def run_preflight() -> None:
 
         _show_preflight_gui(items)
     except Exception as e:
-        print(f"[ComfyNexus] Preflight failed: {e}")
+        print(f"[Comfyui-Box] Preflight failed: {e}")
         import traceback
         traceback.print_exc()
 
@@ -265,7 +265,7 @@ def _show_preflight_gui(items: List[PreflightItem]) -> None:
         from tkinter import ttk, font as tkfont
     except ImportError:
         # tkinter 不可用，打印到控制台
-        print("[ComfyNexus] Preflight check - missing dependencies:")
+        print("[Comfyui-Box] Preflight check - missing dependencies:")
         for it in items:
             status = "OK" if it.passed else "MISSING"
             print(f"  [{status}] {it.name}: {it.version}")
@@ -287,7 +287,7 @@ def _show_preflight_gui(items: List[PreflightItem]) -> None:
     # 窗口 — 按 DPI 缩放窗口尺寸，确保内容不被裁切
     win_w, win_h = int(460 * scale), int(500 * scale)
     root = tk.Tk()
-    root.title("ComfyNexus - System Check")
+    root.title("Comfyui-Box - System Check")
     root.geometry(f"{win_w}x{win_h}")
     root.resizable(False, False)
     root.configure(bg=BG)
@@ -306,7 +306,7 @@ def _show_preflight_gui(items: List[PreflightItem]) -> None:
     font_btn = ("Segoe UI", 10, "bold")
 
     # 标题
-    tk.Label(root, text="ComfyNexus", font=font_title,
+    tk.Label(root, text="Comfyui-Box", font=font_title,
              fg=ACCENT_LIGHT, bg=BG).pack(pady=(20, 2))
     tk.Label(root, text="System Requirements Check", font=font_sub,
              fg=DIM, bg=BG).pack(pady=(0, 15))
@@ -440,7 +440,7 @@ def _show_preflight_gui(items: List[PreflightItem]) -> None:
                     progress_text_var.set("Connecting..."),
                 ))
 
-                installer_dir = Path(tempfile.gettempdir()) / "ComfyNexus"
+                installer_dir = Path(tempfile.gettempdir()) / "Comfyui-Box"
                 installer_dir.mkdir(parents=True, exist_ok=True)
                 fname = it.install_url.split("/")[-1]
                 if "?" in fname or len(fname) < 5:
@@ -450,7 +450,7 @@ def _show_preflight_gui(items: List[PreflightItem]) -> None:
                 try:
                     # 下载（带进度）
                     ctx = ssl.create_default_context()
-                    req = urllib.request.Request(it.install_url, headers={"User-Agent": "ComfyNexus/1.0"})
+                    req = urllib.request.Request(it.install_url, headers={"User-Agent": "Comfyui-Box/1.0"})
                     try:
                         resp = urllib.request.urlopen(req, context=ctx, timeout=300)
                     except ssl.SSLError:
@@ -497,7 +497,7 @@ def _show_preflight_gui(items: List[PreflightItem]) -> None:
 
                         try:
                             ctx2 = ssl.create_default_context()
-                            req2 = urllib.request.Request(it.install_url, headers={"User-Agent": "ComfyNexus/1.0"})
+                            req2 = urllib.request.Request(it.install_url, headers={"User-Agent": "Comfyui-Box/1.0"})
                             try:
                                 resp2 = urllib.request.urlopen(req2, context=ctx2, timeout=300)
                             except ssl.SSLError:
@@ -524,7 +524,7 @@ def _show_preflight_gui(items: List[PreflightItem]) -> None:
                             resp2.close()
                             dl_size = installer_path.stat().st_size
                         except Exception as e2:
-                            print(f"[ComfyNexus] Download retry failed: {e2}")
+                            print(f"[Comfyui-Box] Download retry failed: {e2}")
 
                     # 安装（可能需要管理员权限）
                     update_ui(lambda n=it.name, i=idx: (
@@ -566,7 +566,7 @@ def _show_preflight_gui(items: List[PreflightItem]) -> None:
 
                     # 如果返回码 0 但实际没装上（损坏安装的情况），尝试修复再重装
                     if not actually_installed and returncode == 0 and it.name == ".NET 8 Desktop Runtime":
-                        print("[ComfyNexus] Install not detected, attempting repair...")
+                        print("[Comfyui-Box] Install not detected, attempting repair...")
                         update_ui(lambda: progress_text_var.set("Repairing existing installation..."))
 
                         # 先修复
@@ -585,7 +585,7 @@ def _show_preflight_gui(items: List[PreflightItem]) -> None:
 
                         # 修复也没用，卸载再重装
                         if not actually_installed:
-                            print("[ComfyNexus] Repair failed, attempting reinstall...")
+                            print("[Comfyui-Box] Repair failed, attempting reinstall...")
                             update_ui(lambda: progress_text_var.set("Uninstalling broken installation..."))
 
                             proc3 = subprocess.Popen(
@@ -679,7 +679,7 @@ def _show_preflight_gui(items: List[PreflightItem]) -> None:
                 progress_label.pack_forget()
 
                 if all_passed:
-                    bottom_status.set("All requirements met! Starting ComfyNexus...")
+                    bottom_status.set("All requirements met! Starting Comfyui-Box...")
                     btn_text.set("Continue")
                     btn.configure(state=tk.NORMAL, command=root.destroy)
                     root.after(2000, root.destroy)

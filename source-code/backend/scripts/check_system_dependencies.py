@@ -1,7 +1,7 @@
 """
 Windows 系统依赖检测工具
 
-检测 ComfyNexus 运行所需的 Windows 系统组件依赖
+检测 Comfyui-Box 运行所需的 Windows 系统组件依赖
 """
 
 import sys
@@ -559,7 +559,7 @@ class SystemDependencyChecker:
 
     def run(self):
         print("=" * 60)
-        print(" ComfyNexus Windows 系统依赖检测工具")
+        print(" Comfyui-Box Windows 系统依赖检测工具")
         print("=" * 60)
         print(f" 检测时间: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         

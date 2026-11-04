@@ -41,7 +41,7 @@ interface ContextMenuPosition {
   log: Log | null
 }
 
-interface ComfyNexusNamespace {
+interface ComfyuiBoxNamespace {
   logsCleared?: boolean
   skipHistoryLogs?: boolean
   logCache?: {
@@ -118,7 +118,7 @@ export default function TerminalPage() {
   const logContainerRef = useRef<HTMLDivElement>(null)
   const isAutoScrollingRef = useRef(false) // 标记是否正在自动滚动
   
-  const getNamespace = useCallback((): ComfyNexusNamespace => {
+  const getNamespace = useCallback((): ComfyuiBoxNamespace => {
     if (!(window as any).__COMFY_NEXUS__) {
       (window as any).__COMFY_NEXUS__ = {}
     }

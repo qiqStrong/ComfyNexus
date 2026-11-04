@@ -1,4 +1,4 @@
-// ComfyNexus 架构风险网络（Phase 1 范围） · 2026-11-01 · fix/security-hardening@88bdb15
+// Comfyui-Box 架构风险网络（Phase 1 范围） · 2026-11-01 · fix/security-hardening@88bdb15
 // 配套 risk-register.md；节点 ID 与登记编号一一对应。
 // 边语义：risk -[amplified-by/leads-to]-> surface/component，surface -[enables]-> impact。
 // 实线 = high 置信且有直接证据；虚线 = medium 置信或缺少直接确认。
@@ -8,7 +8,7 @@ digraph cn_risk_map {
   ranksep=0.85;
   fontname="Microsoft YaHei";
   labelloc=t;
-  label="ComfyNexus 风险网络  红=严重/高  橙=中或修复在途  绿=基线已提交缓解  灰=组件/待处置\n(证据与验收见 risk-register.md · 结论锚定 88bdb15，勿与工作区混淆)";
+  label="Comfyui-Box 风险网络  红=严重/高  橙=中或修复在途  绿=基线已提交缓解  灰=组件/待处置\n(证据与验收见 risk-register.md · 结论锚定 88bdb15，勿与工作区混淆)";
   node [fontname="Microsoft YaHei", fontsize=10, style="rounded,filled"];
   edge [fontname="Microsoft YaHei", fontsize=8];
 

@@ -1,14 +1,14 @@
 <div align="center">
 
-<img src="banner.png" alt="ComfyNexus">
+<img src="banner.png" alt="Comfyui-Box">
 
-<h1>ComfyNexus</h1>
+<h1>Comfyui-Box</h1>
 
 <p><strong>为专业创作者而生的 ComfyUI 现代化管理平台</strong></p>
 
 <p>
-  <a href="https://github.com/qiqStrong/ComfyNexus/releases">
-    <img src="https://img.shields.io/github/v/release/qiqStrong/ComfyNexus?style=flat-square&color=3b82f6" alt="Version">
+  <a href="https://github.com/qiqStrong/Comfyui-Box/releases">
+    <img src="https://img.shields.io/github/v/release/qiqStrong/Comfyui-Box?style=flat-square&color=3b82f6" alt="Version">
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
@@ -16,8 +16,8 @@
   <a href="https://www.microsoft.com/windows">
     <img src="https://img.shields.io/badge/platform-Windows-6366f1?style=flat-square" alt="Platform">
   </a>
-  <a href="https://github.com/qiqStrong/ComfyNexus/releases">
-    <img src="https://img.shields.io/github/downloads/qiqStrong/ComfyNexus/total?style=flat-square&color=f59e0b" alt="Downloads">
+  <a href="https://github.com/qiqStrong/Comfyui-Box/releases">
+    <img src="https://img.shields.io/github/downloads/qiqStrong/Comfyui-Box/total?style=flat-square&color=f59e0b" alt="Downloads">
   </a>
 </p>
 
@@ -37,7 +37,7 @@
 
 ## ✨ 核心亮点
 
-> **ComfyNexus** 不仅仅是一个启动器，它是 ComfyUI 生态的"手术刀"与"盾牌"。
+> **Comfyui-Box** 不仅仅是一个启动器，它是 ComfyUI 生态的"手术刀"与"盾牌"。
 
 - 🚀 **一站式治理** — 深度整合环境、版本、插件、模型、工作流，彻底告别繁琐的命令行与文件夹反复跳转
 - ⚡ **极客式调优** — 内置 Flux 标准、旗舰画质等多种加速预设，支持多行参数编辑，满足极致性能追求
@@ -165,9 +165,9 @@
 
 ### 安装步骤
 
-1. **下载** 最新 [Releases](https://github.com/qiqStrong/ComfyNexus/releases) 压缩包
+1. **下载** 最新 [Releases](https://github.com/qiqStrong/Comfyui-Box/releases) 压缩包
 2. **解压** 即可使用（绿色免安装）
-3. **启动** 运行 `ComfyNexus.exe`，首次启动选择你的 ComfyUI 根目录
+3. **启动** 运行 `Comfyui-Box.exe`，首次启动选择你的 ComfyUI 根目录
 
 ---
 
@@ -176,7 +176,7 @@
 <details>
 <summary><b>需要手动安装 Git 吗？</b></summary>
 
-**不需要预先安装**。首次启动时 ComfyNexus 会进入引导流程：自动下载便携版 MinGit（当前版本 2.53.0.2），或者直接指定你电脑上已有的 Git，之后所有版本控制操作都走它。
+**不需要预先安装**。首次启动时 Comfyui-Box 会进入引导流程：自动下载便携版 MinGit（当前版本 2.53.0.2），或者直接指定你电脑上已有的 Git，之后所有版本控制操作都走它。
 </details>
 
 <details>

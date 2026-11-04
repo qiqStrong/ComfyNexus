@@ -3,7 +3,7 @@
 
 提供 API Key 脱敏、HTTPS 强制和配置验证等安全相关的工具函数。
 
-Author: ComfyNexus 开发团队
+Author: Comfyui-Box 开发团队
 Date: 2025-02-03
 """
 

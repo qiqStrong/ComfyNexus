@@ -130,7 +130,7 @@ class SystemMonitorController:
                     
                     if not floating_window_manager._main_hwnd:
                         from backend.src.utils.window_bounds import find_window_by_title
-                        main_hwnd = find_window_by_title("ComfyNexus", max_retries=1, retry_interval=0)
+                        main_hwnd = find_window_by_title("Comfyui-Box", max_retries=1, retry_interval=0)
                         if main_hwnd:
                             floating_window_manager.set_main_hwnd(main_hwnd)
                             logger.debug(f"[toggle_floating_window] 设置主窗口句柄: {main_hwnd}")

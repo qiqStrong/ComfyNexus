@@ -6,7 +6,7 @@
 - 缓存清理（全部清理、按类型清理）
 - 缓存目录管理
 
-Author: ComfyNexus 开发团队
+Author: Comfyui-Box 开发团队
 Date: 2026-03-25
 """
 

@@ -3,7 +3,7 @@
 
 统一管理缓存相关的常量值，避免魔法数字。
 
-Author: ComfyNexus 开发团队
+Author: Comfyui-Box 开发团队
 Date: 2026-03-25
 """
 

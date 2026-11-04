@@ -1,5 +1,5 @@
 """
-ComfyNexus Backend Package
+Comfyui-Box Backend Package
 """
 
 def get_version():

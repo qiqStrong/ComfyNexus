@@ -153,9 +153,9 @@ class SystemTrayManager:
             menu = self._create_menu()
 
             self._tray = pystray.Icon(
-                name='ComfyNexus',
+                name='Comfyui-Box',
                 icon=icon,
-                title='ComfyNexus',
+                title='Comfyui-Box',
                 menu=menu
             )
 

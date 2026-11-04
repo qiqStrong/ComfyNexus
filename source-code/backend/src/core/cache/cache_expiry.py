@@ -4,7 +4,7 @@
 提供统一的缓存过期检查和管理功能。
 支持从设置中读取自定义 TTL 值。
 
-Author: ComfyNexus 开发团队
+Author: Comfyui-Box 开发团队
 Date: 2026-03-25
 """
 

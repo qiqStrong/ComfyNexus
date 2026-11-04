@@ -31,8 +31,8 @@ class MarketplaceLogger:
     def logger(self):
         """获取日志记录器（延迟初始化）"""
         if self._logger is None:
-            # 使用 ComfyNexus 日志记录器，避免创建新的未初始化的日志记录器
-            self._logger = get_logger("ComfyNexus")
+            # 使用 Comfyui-Box 日志记录器，避免创建新的未初始化的日志记录器
+            self._logger = get_logger("Comfyui-Box")
         return self._logger
     
     def debug(self, message: str) -> None:
@@ -116,7 +116,7 @@ class MarketplaceLogger:
                 f.write(log_line)
         except Exception as e:
             # 如果写入失败，记录到全局日志
-            logger = get_logger("ComfyNexus")
+            logger = get_logger("Comfyui-Box")
             logger.error(f"无法写入安装日志文件 {log_file}: {e}")
     
     @staticmethod
@@ -153,7 +153,7 @@ class MarketplaceLogger:
                     f.write(error)
                     f.write("\n\n")
         except Exception as e:
-            logger = get_logger("ComfyNexus")
+            logger = get_logger("Comfyui-Box")
             logger.error(f"无法写入命令输出到日志文件 {log_file}: {e}")
     
     @staticmethod
@@ -180,7 +180,7 @@ class MarketplaceLogger:
                 f.write(traceback.format_exc())
                 f.write("\n")
         except Exception as e:
-            logger = get_logger("ComfyNexus")
+            logger = get_logger("Comfyui-Box")
             logger.error(f"无法写入异常信息到日志文件 {log_file}: {e}")
 
 

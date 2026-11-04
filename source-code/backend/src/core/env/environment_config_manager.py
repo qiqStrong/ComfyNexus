@@ -1,5 +1,5 @@
 """
-Environment configuration manager for ComfyNexus.
+Environment configuration manager for Comfyui-Box.
 
 This module provides functionality to manage environment configurations,
 including loading, saving, importing, and exporting configurations.

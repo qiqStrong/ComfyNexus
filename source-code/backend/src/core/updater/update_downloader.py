@@ -335,7 +335,7 @@ class UpdateDownloader:
         
         filename = url.split("/")[-1]
         if not filename.endswith(".zip"):
-            filename = f"ComfyNexus-update-{int(datetime.now().timestamp())}.zip"
+            filename = f"Comfyui-Box-update-{int(datetime.now().timestamp())}.zip"
         
         try:
             local_check = self.check_local_file(file_hash, filename)
@@ -673,7 +673,7 @@ class UpdateDownloader:
         """准备下载请求的 URL 和 headers"""
         download_url = url
         headers = {
-            "User-Agent": "ComfyNexus-UpdateDownloader"
+            "User-Agent": "Comfyui-Box-UpdateDownloader"
         }
         
         if dev_token and asset_id and repo_owner and repo_name:

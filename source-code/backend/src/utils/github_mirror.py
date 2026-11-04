@@ -497,7 +497,7 @@ class GitHubMirrorManager:
     def _fetch_url(
         self, url: str, headers: Dict, mirror: str, timeout: int
     ) -> bytes:
-        all_headers = {"User-Agent": "ComfyNexus/1.0"}
+        all_headers = {"User-Agent": "Comfyui-Box/1.0"}
         all_headers.update(headers)
         response = requests.get(url, headers=all_headers, timeout=timeout)
         response.raise_for_status()
@@ -506,7 +506,7 @@ class GitHubMirrorManager:
     def _fetch_direct(self, url: str, timeout: int) -> bytes:
         response = requests.get(
             url,
-            headers={"User-Agent": "ComfyNexus/1.0"},
+            headers={"User-Agent": "Comfyui-Box/1.0"},
             timeout=timeout,
         )
         response.raise_for_status()
@@ -604,7 +604,7 @@ class MirrorSpeedTester:
             transformed_url, headers = self._transform_test_url(
                 test_url, mirror, url_type
             )
-            all_headers = {"User-Agent": "ComfyNexus/1.0"}
+            all_headers = {"User-Agent": "Comfyui-Box/1.0"}
             all_headers.update(headers)
 
             start_time = time.time()

@@ -44,7 +44,7 @@ export function MainLayout() {
   // 构建 ComfyUI URL
   // 新架构：直接加载 ComfyUI，不再使用反向代理
   // - ComfyUI 已启用 CORS，支持跨域请求
-  // - 通过桥接插件（ComfyNexus_Bridge）实现与主窗口的通信
+  // - 通过桥接插件（Comfyui-Box_Bridge）实现与主窗口的通信
   // - WebSocket 直接连接到 ComfyUI
   // 只有端口可用且用户点击了启动工作台按钮时才显示 iframe
   const isPortAvailable = comfyUIStatus?.portAvailable ?? false
