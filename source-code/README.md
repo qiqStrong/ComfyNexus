@@ -50,7 +50,7 @@ source-code/
 ## 从零跑起来
 
 ```powershell
-# 0) 仓库根提供了 start_dev.bat（当前写死了本机绝对路径，换机器需自行修改）
+# 0) 仓库根提供了 start_dev.bat（内部用 %~dp0 定位脚本目录，可随仓库整体移动；前提是 backend\.venv 与 dist\index.html 已就绪）
 
 # 1) 前端：必须先构建，开发模式下后端托管的就是 source-code/dist/
 cd source-code/frontend

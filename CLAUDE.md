@@ -20,6 +20,10 @@ Comfyui-Box 是一个为 ComfyUI 设计的现代化管理平台（仅支持 Wind
 
 ### 开发环境
 
+**系统前置（Windows）**：需要 .NET 8 Desktop Runtime、Edge WebView2 Runtime、VC++ 2015-2022 x64 运行库；缺任一项 `preflight` 预检会弹窗，极端情况下进不去主界面。
+
+**版本要求**：Python **3.12.x**（本机 3.12.3，`backend/requirements.txt:2` 注释声明）；Node 需满足 Vite 7 的 `^20.19.0 || >=22.12.0`（23.x 等奇数列会触发 EBADENGINE 警告）。
+
 ```bash
 # 前端开发
 cd source-code/frontend
@@ -75,6 +79,15 @@ cd source-code
 
 # 构建产物位于 source-code/build_scripts/打包产物_<版本号>/
 ```
+
+> **生产构建前置**：`build_scripts/构建.ps1:36` 固定使用 `source-code\.venv`，缺失时 `exit 1`。首次打包前先建该环境并装好依赖：
+>
+> ```powershell
+> cd source-code
+> python -m venv .venv
+> .\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+> .\.venv\Scripts\python.exe -m pip install pyinstaller
+> ```
 
 版本号唯一来源：`source-code/comfyui_box_version.py`（当前 `__version__ = "V1.0.0"`），缺省回落值 `"V1.0.0"`（`build_scripts/构建工具库.ps1:93-117`）。**不存在名为 `VERSION` 的文件。**
 
@@ -286,6 +299,12 @@ process_manager.start(python_path, comfyui_path, args=None, env_config=None)  # 
   - 正常更新包根目录为 `Comfyui-Box/`（`EXPECTED_ROOT`），剥离前缀后不得为空。
 - **不要退回旧写法**：`target_dir / member` 配合 `zf.open(member)` 在 Windows 上可被 `../../x`、`C:/Windows/x`、反斜杠成员写出目标目录。
 - 修改这两处后跑 `pytest tests/unit/core/updater/test_update_hardening.py`（该测试用桩替换 `pythonnet`/`webview`，不会初始化 .NET 运行时）。
+
+### 11. 开发模式运行期事实（调试必读）
+
+- **HTTP 端口**：后端从 **5000** 起自动探测可用端口（`utils/http_server.py:93` 的 `find_available_port(start_port=5000)`），不是固定端口；以日志 `[端口] 使用端口: <port> (自动分配)` 为准。
+- **首次启动落盘**：会在 `source-code\data\gallery\` 新建空库 `assets.json` 与缩略图目录，配置写入 `source-code\backend\config\settings.json`；两者均被 `.gitignore` 忽略、不入库。
+- **Git 来源**：仓库内 `backend/MinGit-2.53.0-64-bit/` 不含 `git.exe`（被 `source-code/.gitignore` 的 `*.exe` 忽略），运行期按“内置 MinGit → 系统 Git → 否决”回退（`utils/git_manager.py`）。
 
 ## 测试策略
 
