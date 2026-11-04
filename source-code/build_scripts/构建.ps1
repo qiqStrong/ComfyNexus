@@ -174,11 +174,16 @@ try {
         Write-Info "运行 UTF-8 编码测试..."
         Push-Location $ProjectRoot
         try {
-            & $VenvPython "backend\tests\test_utf8_encoding.py"
-            if ($LASTEXITCODE -eq 0) {
-                Write-Success "UTF-8 编码测试通过"
+            $Utf8TestFile = "backend\tests\test_utf8_encoding.py"
+            if (-not (Test-Path $Utf8TestFile)) {
+                Write-Warning-Custom "UTF-8 编码测试脚本不存在，跳过"
             } else {
-                Write-Warning-Custom "UTF-8 编码测试失败，但继续构建"
+                & $VenvPython $Utf8TestFile
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Success "UTF-8 编码测试通过"
+                } else {
+                    Write-Warning-Custom "UTF-8 编码测试失败，但继续构建"
+                }
             }
         } catch {
             Write-Warning-Custom "测试执行出错: $_"
@@ -264,9 +269,18 @@ try {
         $env:BUILDPATH = $BuildDir
         
         # 运行 PyInstaller
-        & $PyInstaller $SpecFile --clean --distpath $DistDir --workpath $BuildDir
+        # PowerShell 会把原生命令写到 stderr 的日志当作错误记录，在 $ErrorActionPreference=Stop 下会误判为构建失败，
+        # 因此这里显式合并输出并转发为普通日志，最终只以退出码判断结果
+        $PrevErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        try {
+            & $PyInstaller $SpecFile --clean --distpath $DistDir --workpath $BuildDir 2>&1 | ForEach-Object { Write-Host $_ }
+            $PyInstallerExitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $PrevErrorAction
+        }
         
-        if ($LASTEXITCODE -ne 0) {
+        if ($PyInstallerExitCode -ne 0) {
             throw "PyInstaller 打包失败"
         }
         
@@ -303,9 +317,16 @@ try {
         if (Test-Path $UpdaterSpecFile) {
             Write-Info "打包 Comfyui-BoxUpdater_v1.0.exe..."
             
-            & $PyInstaller $UpdaterSpecFile --clean --distpath $UpdaterDistDir --workpath (Join-Path $BuildDir "updater")
+            $PrevErrorAction = $ErrorActionPreference
+            $ErrorActionPreference = "Continue"
+            try {
+                & $PyInstaller $UpdaterSpecFile --clean --distpath $UpdaterDistDir --workpath (Join-Path $BuildDir "updater") 2>&1 | ForEach-Object { Write-Host $_ }
+                $UpdaterExitCode = $LASTEXITCODE
+            } finally {
+                $ErrorActionPreference = $PrevErrorAction
+            }
             
-            if ($LASTEXITCODE -eq 0) {
+            if ($UpdaterExitCode -eq 0) {
                 $UpdaterExe = Join-Path $UpdaterDistDir "Comfyui-BoxUpdater_v1.0.exe"
                 if (Test-Path $UpdaterExe) {
                     $TargetDir = Join-Path $DistDir "Comfyui-Box"

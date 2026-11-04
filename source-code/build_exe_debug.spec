@@ -4,21 +4,32 @@ import sys
 
 block_cipher = None
 
+# 必需数据文件
+_datas = [
+    ('dist', 'dist'),
+    ('assets', 'assets'),
+    ('comfyui_box_version.py', '.'),
+    ('backend/__init__.py', 'backend'),
+    (os.path.join('backend', 'src'), os.path.join('backend', 'src')),
+    (os.path.join('backend', 'models', 'nsfw.onnx'), os.path.join('models')),
+    (os.path.join('backend', 'lib', 'webview2_netcore'), os.path.join('backend', 'lib', 'webview2_netcore')),
+]
+
+# 可选数据目录：LibreHardwareMonitor 依赖的 DLL 需本地自行安装，缺失时跳过而非中断打包
+for _src, _dst in [
+    (os.path.join('backend', 'lib', 'LibreHardwareMonitor'), os.path.join('lib', 'LibreHardwareMonitor')),
+    (os.path.join('backend', 'lib', 'librehardwaremonitorlib', 'runtimes'), os.path.join('lib', 'librehardwaremonitorlib', 'runtimes')),
+]:
+    if os.path.isdir(_src):
+        _datas.append((_src, _dst))
+    else:
+        print(f"[spec] 跳过可选数据目录（不存在）: {_src}")
+
 a = Analysis(
     ['backend/main.py'],
     pathex=[os.path.abspath('.')],
     binaries=[],
-    datas=[
-        ('dist', 'dist'),
-        ('assets', 'assets'),
-        ('comfyui_box_version.py', '.'),
-        ('backend/__init__.py', 'backend'),
-        (os.path.join('backend', 'src'), os.path.join('backend', 'src')),
-        (os.path.join('backend', 'models', 'nsfw.onnx'), os.path.join('models')),
-        (os.path.join('backend', 'lib', 'LibreHardwareMonitor'), os.path.join('lib', 'LibreHardwareMonitor')),
-        (os.path.join('backend', 'lib', 'librehardwaremonitorlib', 'runtimes'), os.path.join('lib', 'librehardwaremonitorlib', 'runtimes')),
-        (os.path.join('backend', 'lib', 'webview2_netcore'), os.path.join('backend', 'lib', 'webview2_netcore')),
-    ],
+    datas=_datas,
     hiddenimports=[
         'webview',
         'webview.platforms.winforms',
@@ -50,8 +61,6 @@ a = Analysis(
         'onnxruntime',
         'yaml',
         'dotenv',
-        'aiofiles',
-        'httpx',
         'websockets',
         'psutil',
         'pathlib',
@@ -268,6 +277,11 @@ for _wf_path in _winforms_candidates:
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
+# 可选的自定义 UAC 清单：本地缺失时交由 PyInstaller 使用默认管理员清单
+_manifest = 'backend/uac.manifest' if os.path.exists(os.path.join('backend', 'uac.manifest')) else None
+if _manifest is None:
+    print('[spec] 未找到 backend/uac.manifest，使用 PyInstaller 默认清单')
+
 exe = EXE(
     pyz,
     a.scripts,
@@ -285,7 +299,7 @@ exe = EXE(
     entitlements_file=None,
     icon='icon.ico',
     uac_admin=True,
-    manifest='backend/uac.manifest',
+    manifest=_manifest,
 )
 
 coll = COLLECT(
