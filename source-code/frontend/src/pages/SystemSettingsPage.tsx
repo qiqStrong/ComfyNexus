@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Settings, Palette, Wifi, Save, Puzzle, RotateCcw, Download, GitBranch, FileText, Languages, Database, Monitor } from 'lucide-react'
+import { Settings, Palette, Wifi, Save, Puzzle, RotateCcw, Download, GitBranch, FileText, Languages, Database, Monitor, HardDrive } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, Label } from '@/components/ui'
 import { NativeSelect } from '@/components/ui/NativeSelect'
 import { Switch } from '@/components/ui/Switch'
@@ -14,6 +14,7 @@ import { LoggingSettings } from '@/components/settings/LoggingSettings'
 import { GitHubApiSetting } from '@/components/settings/GitHubApiSetting'
 import { TranslationSettings } from '@/components/settings/TranslationSettings'
 import { CacheManagement } from '@/components/settings/CacheManagement'
+import { DataStorageSettings } from '@/components/settings/DataStorageSettings'
 import { MirrorSettings } from '@/components/settings/MirrorSettings'
 import { PyPIMirrorSettings } from '@/components/settings/PyPIMirrorSettings'
 import { useWindowStore } from '@/stores/useWindowStore'
@@ -23,7 +24,7 @@ import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/lib/utils'
 import { toast } from '@/utils/toast'
 
-type TabType = 'general' | 'appearance' | 'translation' | 'modules' | 'cache' | 'advanced'
+type TabType = 'general' | 'appearance' | 'translation' | 'modules' | 'cache' | 'data' | 'advanced'
 
 const WINDOW_SIZES: Record<string, { width: number; height: number; label: string }> = {
   '3400x1800': { width: 3400, height: 1800, label: '3400×1800' },
@@ -208,6 +209,7 @@ export default function SystemSettingsPage() {
     { id: 'translation', label: t('settings.tabs.translation'), icon: <Languages className="size-4" /> },
     { id: 'modules', label: t('settings.tabs.modules'), icon: <Puzzle className="size-4" /> },
     { id: 'cache', label: t('settings.tabs.cache'), icon: <Database className="size-4" /> },
+    { id: 'data', label: t('settings.tabs.data'), icon: <HardDrive className="size-4" /> },
     { id: 'advanced', label: t('settings.tabs.advanced'), icon: <GitBranch className="size-4" /> },
   ]
 
@@ -218,7 +220,7 @@ export default function SystemSettingsPage() {
         {/* 标题和按钮 */}
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold">{t('settings.title')}</h1>
-          {activeTab !== 'modules' && (
+          {activeTab !== 'modules' && activeTab !== 'data' && (
             <Button onClick={handleSave}>
               <Save className="mr-2 size-4" />
               {t('common.save')}
@@ -736,6 +738,11 @@ export default function SystemSettingsPage() {
         {/* 模块管理 */}
         {activeTab === 'modules' && (
           <ModuleManagement />
+        )}
+
+        {/* 数据目录 */}
+        {activeTab === 'data' && (
+          <DataStorageSettings />
         )}
 
         {/* 缓存管理 */}

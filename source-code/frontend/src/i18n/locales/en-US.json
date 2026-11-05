@@ -2483,6 +2483,7 @@
       "translation": "Translation",
       "modules": "Modules",
       "cache": "Cache",
+      "data": "Data Directory",
       "advanced": "Advanced"
     },
     "windowSize": {
@@ -2637,6 +2638,60 @@
     "resetWarnings": {
       "label": "Reset All Important Warnings",
       "success": "All important warnings have been reset"
+    },
+    "storage": {
+      "title": "Data Directory",
+      "description": "User data lives in a machine-level directory, so it survives moving the project folder or reinstalling. Cache can be cleared anytime; business data cannot be recovered after wiping.",
+      "loadError": "Failed to read data directory status",
+      "locationTitle": "Current Data Directory",
+      "source": "Source",
+      "sourceEnv": "Environment variable COMFYUI_BOX_USERDATA",
+      "sourcePointer": "Machine-level pointer file",
+      "sourceDefault": "Default directory",
+      "sourceFallback": "Temporary fallback directory",
+      "pointer": "Pointer",
+      "openFolder": "Open Folder",
+      "refresh": "Refresh",
+      "changeDir": "Change Directory",
+      "restart": "Restart App",
+      "restartHint": "Data directory change saved. Restart the app to apply.",
+      "restarting": "Restarting app…",
+      "chooseFailed": "Failed to choose a folder",
+      "changeFailed": "Failed to change data directory",
+      "counts": {
+        "assets": "Assets",
+        "categories": "Categories",
+        "thumbnails": "Thumbnails",
+        "promptImages": "Prompt Images",
+        "workflows": "Workflows",
+        "conversations": "Conversations"
+      },
+      "migrating": "Migrating",
+      "migrateDone": "Migration completed",
+      "migrateFailed": "Migration failed",
+      "migrateSummary": "Copied {files} files; {key}",
+      "keyVerified": "Encryption key verified ({decrypted}/{total} API keys decrypted)",
+      "keySkipped": "No encrypted API keys found; key migrated with data",
+      "legacyTitle": "Legacy Data Detected",
+      "legacyDesc": "Old data can be migrated into the current directory in one click. Migration only reads the old directory; files are kept unchanged.",
+      "legacyCounts": "{assets} assets · {categories} categories · {promptImages} prompt images · {workflows} workflows",
+      "legacyMigrate": "Migrate Legacy Data",
+      "cacheTitle": "Clear Cache & Logs",
+      "cacheDesc": "Cache and logs are safe to delete (marketplace cache, scan cache, runtime logs). They rebuild on next launch without affecting business data.",
+      "cleanCache": "Clear Cache & Logs",
+      "cleanDone": "Cleared {count} items",
+      "cleanFailed": "Failed to clear cache",
+      "wipeTitle": "Wipe Business Data",
+      "wipeDesc": "Deletes asset library, thumbnails, prompts, workflow metadata, AI conversations, encryption key, configuration, backups and LoRA cache. This cannot be undone — back up the data directory first.",
+      "wipeButton": "Wipe Business Data",
+      "wipeConfirm": "Wipe all business data? This includes API keys and the encryption key, asset library, prompts, workflow metadata, AI conversations and configuration. This cannot be undone; the app will restart with an empty library.",
+      "wipeConfirmButton": "Wipe (Unrecoverable)",
+      "wipeQueued": "Wipe request registered. The app will restart and wipe data on next launch.",
+      "wipeFailed": "Failed to register wipe request",
+      "changeTitle": "Change Data Directory",
+      "changeDesc": "Switch the data directory to: {path}. You can switch only (old data stays), or migrate current data to the new directory first.",
+      "changeOnly": "Switch Only",
+      "changeMigrate": "Migrate Current Data & Switch"
     },
     "cache": {
       "title": "Cache Management",
@@ -4082,5 +4137,19 @@
       "success": "Image pushed to ComfyUI",
       "failed": "Push failed, please try again"
     }
+  },
+  "dataSetup": {
+    "title": "Choose Data Location",
+    "desc": "Confirm where user data is stored. By default it lives in a machine-level directory shared by all copies on this PC. You can change or clean it later in Settings → Data Directory.",
+    "currentDir": "Current data directory",
+    "useThis": "Use This Directory",
+    "chooseOther": "Choose Another Directory",
+    "pointerInvalid": "Previous data directory unavailable: {path}. Please choose or locate it again.",
+    "legacyFound": "Legacy data detected (read-only, can migrate)",
+    "legacyDetail": "{assets} assets · {categories} categories · {promptImages} prompt images · {workflows} workflows",
+    "migrateOld": "Migrate Legacy Data",
+    "migrated": "Migration completed. The app will restart.",
+    "restarting": "Restarting app…",
+    "error": "Operation failed, please retry"
   }
 }

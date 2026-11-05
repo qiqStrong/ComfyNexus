@@ -10,6 +10,7 @@ import { SideBar } from './SideBar'
 import { ResizeHandles } from './ResizeHandles'
 import { Loading } from '@/components/ui'
 import { ProcessConflictDialog } from '@/components/process/ProcessConflictDialog'
+import { DataDirSetupDialog } from '@/components/settings/DataDirSetupDialog'
 import { WorkspaceFrame } from '@/components/workspace/WorkspaceFrame'
 import { useProcessStore } from '@/stores/useProcessStore'
 import { useFullscreenStore } from '@/stores/useFullscreenStore'
@@ -153,6 +154,9 @@ export function MainLayout() {
           </div>
         </main>
       </div>
+
+      {/* 首启用户数据目录选择 */}
+      <DataDirSetupDialog />
 
       {/* 进程冲突对话框 */}
       <ProcessConflictDialog

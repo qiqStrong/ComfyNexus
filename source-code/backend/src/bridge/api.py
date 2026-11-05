@@ -48,6 +48,8 @@ class Api:
         self._exit_request_handler = None
         self._close_dialog_cancel_handler = None
         self._close_dialog_shown_handler = None
+        # 用户数据目录变更/清理后需要重启应用
+        self._restart_requested = False
         
         # 直接初始化所有控制器 - 使用私有属性命名
         from backend.src.core.config import ModuleConfigManager
@@ -2856,12 +2858,9 @@ class Api:
             import os
             import sys
             
-            # 获取项目根目录
-            from backend.src.utils.paths import get_project_root
-            project_root = get_project_root()
-            
-            # 查询 ComfyUI 运行日志
-            logs_dir = project_root / "logs" / "comfyui"
+            # 获取日志目录（机器级用户数据根）
+            from backend.src.utils.paths import get_log_dir
+            logs_dir = get_log_dir("comfyui")
             
             if not logs_dir.exists():
                 return {
@@ -7821,3 +7820,91 @@ class Api:
     def gallery_push_image_to_comfyui(self, asset_id: str) -> dict:
         """推送图片到 ComfyUI 的 LoadImage 节点"""
         return self._gallery_controller.gallery_push_image_to_comfyui(asset_id)
+
+    # ========== 用户数据目录 API（用户级/系统级数据分离） ==========
+
+    def userdata_get_status(self) -> dict:
+        """获取用户数据目录状态（根目录、来源、计数、旧数据检测）。"""
+        from backend.src.core.userdata import get_userdata_status
+        return get_userdata_status()
+
+    def userdata_initialize(self, root: str = None) -> dict:
+        """
+        首启初始化用户数据目录。
+
+        Args:
+            root: 自定义目录绝对路径；为空使用默认目录
+        """
+        from backend.src.core.userdata import initialize_user_data
+        try:
+            return initialize_user_data(root=root)
+        except ValueError as exc:
+            return {"success": False, "error": str(exc)}
+        except Exception as exc:
+            logger.error("[用户数据] 初始化失败: %s", exc, exc_info=True)
+            return {"success": False, "error": str(exc)}
+
+    def userdata_set_root(self, root: str, copy_current: bool = False) -> dict:
+        """更改用户数据目录（写机器级指针；可选复制当前数据）。"""
+        from backend.src.core.userdata import set_user_data_root
+        try:
+            return set_user_data_root(root, copy_current=bool(copy_current))
+        except ValueError as exc:
+            return {"success": False, "error": str(exc)}
+        except Exception as exc:
+            logger.error("[用户数据] 更改目录失败: %s", exc, exc_info=True)
+            return {"success": False, "error": str(exc)}
+
+    def userdata_start_migration(self, source_root: str, target_root: str = None) -> dict:
+        """启动旧数据迁移（后台任务，源目录只读）。"""
+        from backend.src.core.userdata import start_migration
+        try:
+            return start_migration(source_root, target_root)
+        except Exception as exc:
+            logger.error("[用户数据] 启动迁移失败: %s", exc, exc_info=True)
+            return {"success": False, "error": str(exc)}
+
+    def userdata_migration_status(self) -> dict:
+        """查询迁移进度与结果。"""
+        from backend.src.core.userdata import get_migration_status
+        return get_migration_status()
+
+    def userdata_clean_cache(self, scopes: list = None) -> dict:
+        """清理缓存/日志（可安全删除，下次启动自动重建）。"""
+        from backend.src.core.userdata import clean_cache_and_logs
+        return clean_cache_and_logs(scopes)
+
+    def userdata_wipe_business(self) -> dict:
+        """
+        请求清空业务数据（资产/提示词/工作流/对话/密钥/配置/备份）。
+
+        实际删除在下一次启动时执行，避免运行时句柄导致删除失败或数据回写。
+        """
+        from backend.src.core.userdata import request_business_wipe
+        return request_business_wipe()
+
+    def userdata_restart_app(self) -> dict:
+        """重启应用（已在运行状态变更数据目录/清理后使用）。"""
+        self._restart_requested = True
+
+        def _destroy() -> None:
+            try:
+                if self._window:
+                    self._window.destroy()
+            except Exception as exc:
+                logger.warning("[用户数据] 关闭窗口失败: %s", exc)
+
+        threading.Timer(0.5, _destroy).start()
+        return {"success": True, "message": "应用正在重启"}
+
+    def userdata_open_folder(self, path: str = None) -> dict:
+        """在资源管理器中打开用户数据目录。"""
+        import os
+        from backend.src.utils.paths import get_user_data_root
+        target = path or str(get_user_data_root())
+        try:
+            os.startfile(target)
+            return {"success": True, "path": target}
+        except Exception as exc:
+            logger.warning("[用户数据] 打开目录失败: %s", exc)
+            return {"success": False, "error": str(exc)}

@@ -82,6 +82,81 @@ export type GalleryMovedAssetPath = {
   categoryId?: string | null
 }
 
+/** 用户数据统计（资产/分类/缩略图/提示词/工作流/对话/密钥） */
+export interface UserDataCounts {
+  root: string
+  assets: number
+  categories: number
+  thumbnails: number
+  prompt_json: number
+  prompt_images: number
+  workflows_files: number
+  db_exists: boolean
+  db_bytes: number
+  db_topics: number
+  secret_key_exists: boolean
+  config_files: number
+  backup_files: number
+  lora_files: number
+  [key: string]: unknown
+}
+
+/** 旧布局数据源（用于首启迁移提示） */
+export interface LegacyUserDataSource {
+  root: string
+  entries: Array<{ kind: string; path: string; files: number; bytes: number }>
+  counts: UserDataCounts
+}
+
+/** 迁移结果 */
+export interface UserDataMigrationResult {
+  success: boolean
+  error?: string
+  copied_files?: number
+  total_files?: number
+  source_root?: string
+  target_root?: string
+  key_verification?: {
+    key_exists: boolean
+    encrypted_keys: number
+    decrypted: number
+    failed: number
+  }
+  [key: string]: unknown
+}
+
+/** 用户数据目录状态 */
+export interface UserDataStatus {
+  success: boolean
+  root: string
+  default_root: string
+  source: string
+  pointer_file: string
+  pointer_target: string | null
+  pointer_invalid: boolean
+  initialized: boolean
+  restart_required: boolean
+  process_root: string
+  project_root: string
+  counts: UserDataCounts
+  legacy_sources: LegacyUserDataSource[]
+  wipe_pending: boolean
+  old_root?: string
+  migration?: UserDataMigrationResult
+  error?: string
+}
+
+/** 迁移任务进度 */
+export interface UserDataMigrationStatus {
+  running: boolean
+  done: number
+  total: number
+  bytes_done: number
+  bytes_total: number
+  current: string
+  result: UserDataMigrationResult | null
+}
+
 export interface PyWebViewAPI {
   // 应用相关 API
   ping: () => Promise<{ status: string }>;
@@ -2055,6 +2130,31 @@ export interface PyWebViewAPI {
     }
     error?: string
   }>;
+
+  // ========== 用户数据目录 API ==========
+
+  userdata_get_status: () => Promise<UserDataStatus>;
+
+  userdata_initialize: (root?: string | null) => Promise<UserDataStatus>;
+
+  userdata_set_root: (root: string, copyCurrent?: boolean) => Promise<UserDataStatus>;
+
+  userdata_start_migration: (
+    sourceRoot: string,
+    targetRoot?: string | null
+  ) => Promise<{ success: boolean; error?: string; message?: string }>;
+
+  userdata_migration_status: () => Promise<UserDataMigrationStatus>;
+
+  userdata_clean_cache: (
+    scopes?: string[]
+  ) => Promise<{ success: boolean; deleted?: Record<string, number>; errors?: string[] }>;
+
+  userdata_wipe_business: () => Promise<{ success: boolean; restart_required?: boolean; error?: string }>;
+
+  userdata_restart_app: () => Promise<{ success: boolean; message?: string }>;
+
+  userdata_open_folder: (path?: string | null) => Promise<{ success: boolean; path?: string; error?: string }>;
 }
 
 // 扩展 Window 接口
