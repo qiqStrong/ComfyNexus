@@ -7855,6 +7855,17 @@ class Api:
             logger.error("[用户数据] 更改目录失败: %s", exc, exc_info=True)
             return {"success": False, "error": str(exc)}
 
+    def userdata_inspect_root(self, path: str) -> dict:
+        """检查目标目录是否已有业务数据（“仅切换”前的覆盖策略确认）。"""
+        from backend.src.core.userdata import inspect_user_data_root
+        try:
+            return inspect_user_data_root(path)
+        except ValueError as exc:
+            return {"success": False, "error": str(exc)}
+        except Exception as exc:
+            logger.error("[用户数据] 检查目录失败: %s", exc, exc_info=True)
+            return {"success": False, "error": str(exc)}
+
     def userdata_start_migration(self, source_root: str, target_root: str = None) -> dict:
         """启动旧数据迁移（后台任务，源目录只读）。"""
         from backend.src.core.userdata import start_migration

@@ -122,7 +122,19 @@ export interface UserDataMigrationResult {
     decrypted: number
     failed: number
   }
+  dest_counts?: UserDataCounts
+  pointer_written?: string
+  restart_required?: boolean
   [key: string]: unknown
+}
+
+/** 目标目录检查结果（“仅切换”前的覆盖策略确认） */
+export interface UserDataRootInspection {
+  success: boolean
+  path?: string
+  has_business?: boolean
+  counts?: UserDataCounts
+  error?: string
 }
 
 /** 用户数据目录状态 */
@@ -139,6 +151,7 @@ export interface UserDataStatus {
   process_root: string
   project_root: string
   counts: UserDataCounts
+  fallback_reason?: string | null
   legacy_sources: LegacyUserDataSource[]
   wipe_pending: boolean
   old_root?: string
@@ -2138,6 +2151,8 @@ export interface PyWebViewAPI {
   userdata_initialize: (root?: string | null) => Promise<UserDataStatus>;
 
   userdata_set_root: (root: string, copyCurrent?: boolean) => Promise<UserDataStatus>;
+
+  userdata_inspect_root: (path: string) => Promise<UserDataRootInspection>;
 
   userdata_start_migration: (
     sourceRoot: string,

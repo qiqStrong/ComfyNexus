@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Database, FolderOpen, HardDrive, RefreshCw, RotateCw, ShieldAlert, Trash2 } from 'lucide-react'
+import { ArrowRightLeft, Copy, Database, FolderOpen, HardDrive, RefreshCw, RotateCw, ShieldAlert, Trash2 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent, Button, Progress } from '@/components/ui'
 import {
   AlertDialog,
@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import type { UserDataMigrationStatus, UserDataStatus } from '@/types/bridge'
+import type { UserDataMigrationStatus, UserDataRootInspection, UserDataStatus } from '@/types/bridge'
 import { toast } from '@/utils/toast'
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -31,6 +31,7 @@ export function DataStorageSettings() {
   const [migrating, setMigrating] = useState(false)
   const [progress, setProgress] = useState<UserDataMigrationStatus | null>(null)
   const [pendingPath, setPendingPath] = useState<string | null>(null)
+  const [pendingInspect, setPendingInspect] = useState<UserDataRootInspection | null>(null)
   const [showChangeDialog, setShowChangeDialog] = useState(false)
   const [showWipeDialog, setShowWipeDialog] = useState(false)
   const [result, setResult] = useState<string | null>(null)
@@ -53,16 +54,16 @@ export function DataStorageSettings() {
     load()
   }, [])
 
-  const sourceLabel = (source: string) => {
+  const sourceLabel = (source?: string) => {
     switch (source) {
-      case 'env':
-        return t('settings.storage.sourceEnv')
       case 'pointer':
         return t('settings.storage.sourcePointer')
       case 'default':
         return t('settings.storage.sourceDefault')
-      default:
+      case 'fallback':
         return t('settings.storage.sourceFallback')
+      default:
+        return '—'
     }
   }
 
@@ -85,11 +86,16 @@ export function DataStorageSettings() {
       }
       if (state?.result?.success) {
         const kv = state.result.key_verification
+        const dc = state.result.dest_counts
         const keyText = kv && kv.encrypted_keys > 0
           ? t('settings.storage.keyVerified', { decrypted: kv.decrypted, total: kv.encrypted_keys })
           : t('settings.storage.keySkipped')
         setResult(t('settings.storage.migrateSummary', {
           files: state.result.copied_files ?? 0,
+          assets: dc?.assets ?? 0,
+          categories: dc?.categories ?? 0,
+          promptImages: dc?.prompt_images ?? 0,
+          workflows: dc?.workflows_files ?? 0,
           key: keyText,
         }))
         toast.success(t('settings.storage.migrateDone'))
@@ -109,19 +115,41 @@ export function DataStorageSettings() {
     }
   }
 
+  const chooseFolder = async (): Promise<string | null> => {
+    if (!window.pywebview?.api) return null
+    const response = await window.pywebview.api.browse_folder_for_shortcut()
+    if (response.success && response.path) return response.path
+    if (response.error_message) toast.error(response.error_message)
+    return null
+  }
+
   const handleChangeDir = async () => {
     if (!window.pywebview?.api) return
     try {
-      const response = await window.pywebview.api.browse_folder_for_shortcut()
-      if (response.success && response.path) {
-        setPendingPath(response.path)
-        setShowChangeDialog(true)
-      } else if (response.error_message) {
-        toast.error(response.error_message)
-      }
+      const path = await chooseFolder()
+      if (!path) return
+      const inspection = await window.pywebview.api.userdata_inspect_root(path)
+      setPendingInspect(inspection.success ? inspection : null)
+      setPendingPath(path)
+      setShowChangeDialog(true)
     } catch (error) {
       console.error('[数据目录] 选择目录失败:', error)
       toast.error(t('settings.storage.chooseFailed'))
+    }
+  }
+
+  const handleMigrateToNewDir = async () => {
+    if (!window.pywebview?.api || !status) return
+    try {
+      const path = await chooseFolder()
+      if (!path) return
+      const migration = await runMigration(status.root, path)
+      if (!migration?.success) return
+      toast.success(t('settings.storage.restarting'))
+      await window.pywebview.api.userdata_restart_app()
+    } catch (error) {
+      console.error('[数据目录] 迁移到新目录失败:', error)
+      toast.error(t('settings.storage.migrateFailed'))
     }
   }
 
@@ -129,8 +157,13 @@ export function DataStorageSettings() {
     if (!window.pywebview?.api || !pendingPath || !status) return
     setShowChangeDialog(false)
     if (withData) {
+      // 迁移成功后后端会同时写入机器级指针，重启即可生效
       const migration = await runMigration(status.root, pendingPath)
       if (!migration?.success) return
+      setPendingPath(null)
+      toast.success(t('settings.storage.restarting'))
+      await window.pywebview.api.userdata_restart_app()
+      return
     }
     const changed = await window.pywebview.api.userdata_set_root(pendingPath, false)
     if (!changed.success) {
@@ -140,6 +173,17 @@ export function DataStorageSettings() {
     setPendingPath(null)
     toast.success(t('settings.storage.restarting'))
     await window.pywebview.api.userdata_restart_app()
+  }
+
+  const handleCopyPath = async () => {
+    if (!status?.root) return
+    try {
+      await navigator.clipboard.writeText(status.root)
+      toast.success(t('settings.storage.copied'))
+    } catch (error) {
+      console.error('[数据目录] 复制路径失败:', error)
+      toast.error(t('settings.storage.copyFailed'))
+    }
   }
 
   const confirmWipe = async () => {
@@ -204,13 +248,19 @@ export function DataStorageSettings() {
         <CardContent className="space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-1">
-              <div className="break-all font-mono text-sm">{status?.root || t('common.loading')}</div>
+              <div className="break-all font-mono text-sm">
+                {status?.root || (loading ? t('common.loading') : '—')}
+              </div>
               <div className="text-xs text-muted-foreground">
-                {t('settings.storage.source')}: {sourceLabel(status?.source || '')}
+                {t('settings.storage.source')}: {sourceLabel(status?.source)}
                 {status?.pointer_target ? ` · ${t('settings.storage.pointer')}: ${status.pointer_target}` : ''}
               </div>
             </div>
-            <div className="flex shrink-0 gap-2">
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={handleCopyPath} disabled={loading || !status}>
+                <Copy className="mr-1 size-4" />
+                {t('settings.storage.copyPath')}
+              </Button>
               <Button variant="outline" size="sm" onClick={() => handleOpenFolder()} disabled={loading}>
                 <FolderOpen className="mr-1 size-4" />
                 {t('settings.storage.openFolder')}
@@ -219,11 +269,21 @@ export function DataStorageSettings() {
                 <RefreshCw className="mr-1 size-4" />
                 {t('settings.storage.refresh')}
               </Button>
-              <Button size="sm" onClick={handleChangeDir} disabled={loading || migrating}>
+              <Button variant="outline" size="sm" onClick={handleChangeDir} disabled={loading || migrating}>
                 {t('settings.storage.changeDir')}
+              </Button>
+              <Button size="sm" onClick={handleMigrateToNewDir} disabled={loading || migrating}>
+                <ArrowRightLeft className="mr-1 size-4" />
+                {t('settings.storage.migrateToNew')}
               </Button>
             </div>
           </div>
+
+          {status?.fallback_reason && (
+            <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
+              {t('settings.storage.fallbackWarning', { reason: status.fallback_reason })}
+            </div>
+          )}
 
           {counts && (
             <div className="grid grid-cols-2 gap-2 text-sm md:grid-cols-3 lg:grid-cols-6">
@@ -323,8 +383,17 @@ export function DataStorageSettings() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('settings.storage.changeTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('settings.storage.changeDesc', { path: pendingPath || '' })}
+            <AlertDialogDescription className="space-y-2">
+              <span className="block">{t('settings.storage.changeDesc', { path: pendingPath || '' })}</span>
+              {pendingInspect?.has_business && (
+                <span className="block text-amber-600">
+                  {t('settings.storage.targetHasData', {
+                    assets: pendingInspect.counts?.assets ?? 0,
+                    categories: pendingInspect.counts?.categories ?? 0,
+                    promptImages: pendingInspect.counts?.prompt_images ?? 0,
+                  })}
+                </span>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
