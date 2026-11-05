@@ -208,6 +208,8 @@ def cleanup_old_updater(logger):
     try:
         if getattr(sys, 'frozen', False):
             app_dir = Path(sys.executable).parent
+            from backend.src.utils.paths import get_backup_dir
+            new_backup_dir = get_backup_dir()
             internal_dir = Path(sys._MEIPASS) if hasattr(sys, '_MEIPASS') else app_dir / '_internal'
         else:
             app_dir = Path(__file__).parent.parent
@@ -239,7 +241,8 @@ def cleanup_old_updater(logger):
                     break
         
         old_backup_dir = internal_dir / 'backup'
-        new_backup_dir = app_dir / 'backup'
+        if not getattr(sys, 'frozen', False):
+            new_backup_dir = app_dir / 'backup'
         
         logger.info(f"[迁移] 检查救援快照: {old_backup_dir}, 存在={old_backup_dir.exists()}")
         
@@ -265,7 +268,7 @@ def cleanup_old_updater(logger):
 
 def migrate_from_internal(logger):
     """
-    从 _internal 目录迁移数据到 exe 同级目录（一次性迁移）
+    从 _internal 目录迁移数据到机器级用户数据根（一次性迁移）
     
     迁移 cache、data、logs、lora_data、temp 等目录
     以及 backend/config 下的配置文件
@@ -281,8 +284,14 @@ def migrate_from_internal(logger):
         if migration_marker.exists():
             return
         
+        # 旧版将数据放在 exe 同级目录，新布局统一放到机器级用户数据根；
+        # 这里仅迁移 PyInstaller 内部目录中的旧文件，exe 同级旧数据由首启弹窗提示迁移。
+        
         migrated = False
         import shutil
+
+        from backend.src.utils.paths import get_user_data_root
+        user_root = get_user_data_root()
         
         def is_empty_dir(path: Path) -> bool:
             if not path.exists():
@@ -295,7 +304,7 @@ def migrate_from_internal(logger):
         
         for dir_name in dirs_to_migrate:
             old_path = internal_dir / dir_name
-            new_path = app_dir / dir_name
+            new_path = user_root / dir_name
             
             if old_path.exists() and old_path.is_dir() and not is_empty_dir(old_path):
                 if is_empty_dir(new_path):
@@ -319,7 +328,7 @@ def migrate_from_internal(logger):
                         logger.warning(f"[迁移] 合并 {dir_name} 失败: {e}")
         
         old_config_dir = internal_dir / "backend" / "config"
-        new_config_dir = app_dir / "config"
+        new_config_dir = get_user_data_root() / "config"
         
         if old_config_dir.exists() and old_config_dir.is_dir():
             config_files = ['settings.json', 'default_config.json', 'lora_config.json', 
@@ -391,7 +400,16 @@ def main():
             return
         
         safe_print("[启动] 单例检查通过，开始启动应用...")
-    
+
+    # 用户数据清理请求必须在任何数据模块打开文件前执行
+    try:
+        from backend.src.core.userdata import apply_pending_wipe
+        _wipe_result = apply_pending_wipe()
+        if _wipe_result.get("applied"):
+            safe_print(f"[用户数据] 已执行待清空请求: {_wipe_result.get('deleted')}")
+    except Exception as _wipe_exc:
+        safe_print(f"[警告] 执行待清空请求失败: {_wipe_exc}")
+
     logger = setup_logger(
         name="Comfyui-Box",
         log_dir=None,
@@ -510,6 +528,10 @@ def main():
         logger.info("=" * 60)
         logger.info("Comfyui-Box 应用启动")
         logger.info(f"日志级别: {logger.level}")
+
+        from backend.src.utils import paths as _paths
+        logger.info(f"用户数据根: {_paths.get_user_data_root()}（来源: {_paths.get_user_data_source()}）")
+        logger.info(f"安装根目录（系统级）: {_paths.get_project_root()}")
         
         # 记录 Git 环境配置
         git_exe = _git_manager.get_git_executable()
@@ -539,11 +561,8 @@ def main():
     # 使用 %LOCALAPPDATA%\Comfyui-Box\webview2 避免非 ASCII 路径导致的问题
     # （如桌面路径含中文时 WebView2 初始化异常）
     # %LOCALAPPDATA% 不需要管理员权限，不会被磁盘清理工具删除
-    local_app_data = os.environ.get('LOCALAPPDATA')
-    if local_app_data:
-        user_data_dir = Path(local_app_data) / 'Comfyui-Box' / 'webview2'
-    else:
-        user_data_dir = base_path / 'data' / 'webview2'
+    from backend.src.utils.paths import get_webview2_dir
+    user_data_dir = get_webview2_dir()
     user_data_dir.mkdir(parents=True, exist_ok=True)
     os.environ['WEBVIEW2_USER_DATA_FOLDER'] = str(user_data_dir)
     
@@ -1318,6 +1337,20 @@ def main():
     except Exception as e:
         logger.warning(f"[Main] 清理窗口句柄记录失败: {e}")
     
+    # 用户数据目录变更/清理后重启：释放单例锁并拉起新进程
+    if getattr(api, "_restart_requested", False):
+        logger.info("[用户数据] 正在重启应用以应用数据目录变更...")
+        if instance_manager:
+            instance_manager.release()
+            instance_manager = None
+        import subprocess as _restart_sp
+        cmd = [sys.executable]
+        if not getattr(sys, 'frozen', False):
+            cmd.append(__file__)
+        flags = _restart_sp.CREATE_NO_WINDOW if hasattr(_restart_sp, 'CREATE_NO_WINDOW') else 0
+        _restart_sp.Popen(cmd, creationflags=flags, cwd=str(Path(__file__).parent))
+        return
+
     if instance_manager:
         instance_manager.release()
 

@@ -1466,16 +1466,10 @@ class RescueController:
         获取备份目录路径，不存在时自动创建
 
         Returns:
-            备份目录的 Path 对象（exe 同级目录下的 backup/ 文件夹）
+            备份目录的 Path 对象（机器级用户数据根下的 backup/ 文件夹）
         """
-        import sys
-        if getattr(sys, 'frozen', False):
-            app_root = Path(sys.executable).parent
-        else:
-            from backend.src.utils.paths import get_project_root
-            app_root = get_project_root()
-        
-        backup_dir = app_root / "backup"
+        from backend.src.utils.paths import get_backup_dir
+        backup_dir = get_backup_dir()
 
         if not backup_dir.exists():
             backup_dir.mkdir(parents=True, exist_ok=True)
@@ -1490,12 +1484,8 @@ class RescueController:
         Returns:
             元数据文件的 Path 对象（data/snapshot_metadata.json）
         """
-        import sys
-        if getattr(sys, 'frozen', False):
-            data_dir = Path(sys.executable).parent / "data"
-        else:
-            from backend.src.utils.paths import get_data_dir
-            data_dir = get_data_dir()
+        from backend.src.utils.paths import get_data_dir
+        data_dir = get_data_dir()
 
         if not data_dir.exists():
             data_dir.mkdir(parents=True, exist_ok=True)

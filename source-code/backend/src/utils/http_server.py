@@ -181,9 +181,9 @@ class StaticFileServer:
         def lora_preview(model_id, filename):
             """LoRA 预览图路由"""
             try:
-                from backend.src.utils.paths import get_project_root
+                from backend.src.utils.paths import get_lora_data_dir
 
-                preview_root = Path(get_project_root()) / "lora_data" / "preview"
+                preview_root = Path(get_lora_data_dir()) / "preview"
                 # model_id 与 filename 都来自 URL，拼接前必须收敛到 preview_root 内
                 file_path = _resolve_within(preview_root, f"{model_id}/{filename}")
 

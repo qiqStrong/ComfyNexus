@@ -30,10 +30,9 @@ class WebView2PreferencesManager:
                     return candidate
             return candidates[0]
 
-        # 降级路径保持历史结构，供未显式设置 WebView2 数据目录时使用。
-        from backend.src.utils.paths import get_project_root
-        project_root = get_project_root()
-        return project_root / "data" / "webview2" / "EBWebView" / "Default" / "Preferences"
+        # 降级路径使用机器级 WebView2 数据目录，供未显式设置时使用。
+        from backend.src.utils.paths import get_webview2_dir
+        return get_webview2_dir() / "EBWebView" / "Default" / "Preferences"
 
     def __init__(self, preferences_path: Optional[str] = None):
         """

@@ -139,12 +139,16 @@ class LoraScanner:
         初始化扫描器
         
         Args:
-            project_root: 项目根目录，默认使用 get_project_root() 获取
+            project_root: 显式指定的旧版项目根目录（含 lora_data/ 子目录）；
+                为空时使用机器级用户数据根下的 lora_data/（可迁移、可清理）
         """
         if project_root is None:
-            project_root = str(get_project_root())
-        self.project_root = Path(project_root)
-        self.data_dir = self.project_root / "lora_data"
+            from backend.src.utils.paths import get_lora_data_dir
+            self.project_root = get_lora_data_dir()
+            self.data_dir = self.project_root
+        else:
+            self.project_root = Path(project_root)
+            self.data_dir = self.project_root / "lora_data"
         self.models_file = self.data_dir / "models.json"
         self.folders_file = self.data_dir / "folders.json"
         self.preview_dir = self.data_dir / "preview"

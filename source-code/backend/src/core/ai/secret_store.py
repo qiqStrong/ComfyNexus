@@ -7,8 +7,8 @@ AI 服务商密钥的本机存储与加解密
 
 本模块改为**每台安装独立生成、保存在运行数据目录**的密钥：
 
-- 密钥位置：``get_data_dir()/secrets/ai_fernet.key``（即开发环境的 ``source-code/data/secrets/``、
-  打包环境的 ``<exe 同级>/data/secrets/``）
+- 密钥位置：``get_data_dir()/secrets/ai_fernet.key``（即用户数据根的
+  ``<userdata>/data/secrets/``；开发态与打包态一致，随用户数据一起迁移）
 - 首次使用时 ``Fernet.generate_key()`` 生成，**原子写入**（临时文件 + ``os.replace``），
   权限尽力收敛到当前用户（Windows 用 ``icacls`` 断开继承并只授权当前用户，POSIX 用 ``0o600``）
 - 解密顺序：本机密钥 → 历史共享密钥（仅用于迁移）。用历史密钥能解开时返回
