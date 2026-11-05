@@ -1,8 +1,8 @@
 """
 用户数据根定位测试
 
-覆盖：环境变量 > 机器级指针 > 默认目录；指针失效降级；用户级目录派生。
-全部通过 monkeypatch 隔离真实环境。
+覆盖：机器级指针 > 默认目录 > 临时降级；指针失效提示；显式 override 注入；用户级目录派生。
+全部通过 monkeypatch 隔离真实环境，不读取进程环境变量。
 """
 
 import sys
@@ -26,7 +26,6 @@ def _isolate_machine_dirs(monkeypatch, tmp_path):
     local.mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("LOCALAPPDATA", str(local))
     monkeypatch.delenv("APPDATA", raising=False)
-    monkeypatch.delenv(paths.USERDATA_ENV_VAR, raising=False)
     paths.reset_user_data_root_cache()
     yield
     paths.reset_user_data_root_cache()
@@ -39,29 +38,49 @@ def test_default_root_and_source(tmp_path):
     assert paths.get_default_user_data_root() == expected
 
 
-def test_env_override_wins(monkeypatch, tmp_path):
+def test_explicit_override_is_used(tmp_path):
+    """自动化测试通过显式参数注入目录，不依赖进程环境变量。"""
     custom = tmp_path / "custom-root"
-    monkeypatch.setenv(paths.USERDATA_ENV_VAR, str(custom))
-    paths.reset_user_data_root_cache()
-    assert paths.get_user_data_root() == custom.resolve()
-    assert paths.get_user_data_source() == "env"
+    root, source, note = paths.resolve_user_root(override=custom)
+    assert root == custom.resolve()
+    assert source == "override"
+    assert note is None
+    assert paths.get_user_data_root(override=custom) == custom.resolve()
 
 
-def test_pointer_used_when_env_absent(tmp_path):
+def test_pointer_used_when_no_override(tmp_path):
     custom = tmp_path / "pointer-root"
     paths.write_userdata_pointer(custom)
     paths.reset_user_data_root_cache()
     assert paths.get_user_data_root() == custom.resolve()
     assert paths.get_user_data_source() == "pointer"
+    assert paths.get_user_data_resolution_note() is None
 
 
-def test_invalid_pointer_falls_back_to_default(tmp_path):
+def test_invalid_pointer_falls_back_to_default_with_note(tmp_path):
     blocker = tmp_path / "blocker"
     blocker.write_text("file, not dir", encoding="utf-8")
     paths.write_userdata_pointer(blocker / "cannot-create")
     paths.reset_user_data_root_cache()
     assert paths.get_user_data_root() == paths.get_default_user_data_root().resolve()
-    assert paths.get_user_data_source() == "pointer-invalid"
+    assert paths.get_user_data_source() == "default"
+    note = paths.get_user_data_resolution_note()
+    assert note and "原数据目录不可用" in note
+
+
+def test_fallback_to_temp_when_default_unwritable(monkeypatch, tmp_path):
+    blocker = tmp_path / "blocked-default"
+    blocker.write_text("file, not dir", encoding="utf-8")
+    fake_temp = tmp_path / "temp"
+    fake_temp.mkdir()
+    monkeypatch.setattr(paths, "get_default_user_data_root", lambda: blocker)
+    monkeypatch.setattr(paths.tempfile, "gettempdir", lambda: str(fake_temp))
+    paths.reset_user_data_root_cache()
+
+    root, source, note = paths.resolve_user_root()
+    assert source == "fallback"
+    assert root == (fake_temp / paths.APP_NAME / "userdata").resolve()
+    assert note and "默认目录不可写" in note
 
 
 def test_user_level_dirs_derived_from_root(tmp_path):

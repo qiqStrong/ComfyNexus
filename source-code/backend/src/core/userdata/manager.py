@@ -232,6 +232,7 @@ def get_userdata_status() -> Dict[str, Any]:
         "process_root": str(start_root),
         "project_root": str(paths.get_project_root()),
         "counts": counts,
+        "fallback_reason": paths.get_user_data_resolution_note(),
         "legacy_sources": detect_legacy_sources(),
         "wipe_pending": (root / paths.WIPE_REQUEST_FILENAME).exists(),
     }
@@ -259,32 +260,51 @@ def initialize_user_data(root: Optional[str] = None, adopt_existing: bool = True
     首启初始化：确认用户数据根并写入完成标记。
 
     Args:
-        root: 自定义目录（绝对路径）；为空则使用默认目录
+        root: 自定义目录（绝对路径）；为空则使用当前解析结果（默认目录或已有指针）
         adopt_existing: 根目录已有内容时直接采纳，不覆盖
+
+    说明：
+        写入指针后**不在当前进程切换数据根**，避免半途读写两套路径；重启后生效。
     """
     start_root = _process_start_root()
     if root:
         target = _validate_root(root)
         paths.write_userdata_pointer(target)
-        paths.reset_user_data_root_cache()
-    actual = paths.get_user_data_root()
+        actual = target
+        source = "pointer"
+    else:
+        actual = paths.get_user_data_root()
+        source = paths.get_user_data_source()
 
     for sub in BUSINESS_SUBDIRS:
         (actual / sub).mkdir(parents=True, exist_ok=True)
 
     paths.mark_user_data_initialized(
         actual,
-        {"source": paths.get_user_data_source(), "adopted_existing": bool(adopt_existing)},
+        {"source": source, "adopted_existing": bool(adopt_existing)},
     )
-    logger.info("[用户数据] 已初始化: %s（来源 %s）", actual, paths.get_user_data_source())
+    logger.info("[用户数据] 已初始化: %s（来源 %s）", actual, source)
+
     status = get_userdata_status()
-    status["restart_required"] = actual != start_root
+    if root:
+        status.update({
+            "root": str(actual),
+            "source": source,
+            "pointer_target": str(actual),
+            "pointer_invalid": False,
+            "initialized": True,
+            "counts": collect_counts(actual),
+            "process_root": str(start_root),
+            "restart_required": actual != start_root,
+        })
+    else:
+        status["restart_required"] = actual != start_root
     return status
 
 
 def set_user_data_root(root: str, copy_current: bool = False) -> Dict[str, Any]:
     """
-    更改用户数据根（写机器级指针）。
+    更改用户数据根（写机器级指针，重启后生效）。
 
     Args:
         root: 新目录绝对路径
@@ -302,15 +322,36 @@ def set_user_data_root(root: str, copy_current: bool = False) -> Dict[str, Any]:
             return {"success": False, "error": copied.get("error") or "迁移失败", "migration": copied}
 
     paths.write_userdata_pointer(target)
-    paths.reset_user_data_root_cache()
     paths.mark_user_data_initialized(target, {"source": "pointer"})
-    logger.info("[用户数据] 数据目录已切换到: %s（旧目录 %s）", target, old_root)
+    logger.info("[用户数据] 数据目录已切换: %s（旧目录 %s），重启后生效", target, old_root)
+    # 不重置解析缓存：当前进程继续使用旧目录，避免运行中读写两套路径
     status = get_userdata_status()
-    status["success"] = True
-    status["old_root"] = str(old_root)
-    status["migration"] = copied
-    status["restart_required"] = True
+    status.update({
+        "success": True,
+        "root": str(target),
+        "source": "pointer",
+        "pointer_target": str(target),
+        "pointer_invalid": False,
+        "initialized": True,
+        "counts": collect_counts(target),
+        "process_root": str(old_root),
+        "restart_required": True,
+        "old_root": str(old_root),
+        "migration": copied,
+    })
     return status
+
+
+def inspect_user_data_root(path_value: str) -> Dict[str, Any]:
+    """检查目标目录是否已有业务数据（用于"仅切换"前的覆盖策略确认）。"""
+    target = _validate_root(path_value)
+    counts = collect_counts(target)
+    return {
+        "success": True,
+        "path": str(target),
+        "has_business": not _business_is_empty(target),
+        "counts": counts,
+    }
 
 
 def _set_job(**kwargs) -> None:
@@ -643,7 +684,21 @@ def start_migration(source_root: str, target_root: Optional[str] = None) -> Dict
         return {"success": False, "error": str(exc)}
 
     def _run() -> None:
-        _migrate_blocking(source, target)
+        result = _migrate_blocking(source, target)
+        if not result or not result.get("success"):
+            return
+        # 迁移到新目录时必须同时写机器级指针，否则重启后仍回到默认目录
+        if target.resolve() != paths.get_user_data_root().resolve():
+            try:
+                pointer = paths.write_userdata_pointer(target)
+                paths.mark_user_data_initialized(target, {"source": "pointer", "migrated": True})
+                result["pointer_written"] = str(pointer)
+                result["restart_required"] = True
+            except OSError as exc:
+                result["success"] = False
+                result["pointer_error"] = str(exc)
+                result["error"] = f"数据已迁移，但无法写入数据目录指针：{exc}。请在设置页重新选择该目录。"
+        _set_job(running=False, current="完成" if result.get("success") else "失败", result=result)
 
     _set_job(running=True, done=0, total=0, bytes_done=0, bytes_total=0,
              current="扫描源目录", result=None)

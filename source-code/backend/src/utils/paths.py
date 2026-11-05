@@ -8,12 +8,13 @@
   配置、备份、LoRA 扫描缓存等），保存在**机器级用户数据根**，换项目目录/换副本/重新 clone
   都能继续使用。
 
-定位顺序（见 ``get_user_data_root``）：
-1. 环境变量 ``COMFYUI_BOX_USERDATA``（绝对路径，便于测试/多实例）
-2. 机器级指针文件 ``%LOCALAPPDATA%\\Comfyui-Box\\userdata.location``
-3. 默认目录 ``%LOCALAPPDATA%\\Comfyui-Box\\userdata``
+定位顺序（见 ``resolve_user_root``）：
+1. 机器级指针文件 ``%LOCALAPPDATA%\\Comfyui-Box\\userdata.location``（用户在设置页指定）
+2. 默认目录 ``%LOCALAPPDATA%\\Comfyui-Box\\userdata``
+3. 默认目录不可写时，降级到 ``%TEMP%\\Comfyui-Box\\userdata`` 并向 UI 返回降级原因
 
 指针文件位于机器级目录而不是项目内，因此"项目内相对路径"不会把数据绑死在副本里。
+自动化测试通过 ``resolve_user_root(override=...)`` 显式传入目录，不读取进程环境变量。
 
 Author: Comfyui-Box 开发团队
 Date: 2026-02-09
@@ -28,7 +29,6 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 APP_NAME = "Comfyui-Box"
-USERDATA_ENV_VAR = "COMFYUI_BOX_USERDATA"
 USERDATA_POINTER_FILENAME = "userdata.location"
 USERDATA_MARKER_FILENAME = ".initialized"
 LEGACY_MARKER_FILENAME = ".migrated-from-userdata.json"
@@ -36,6 +36,8 @@ WIPE_REQUEST_FILENAME = ".wipe-request.json"
 
 _resolve_lock = threading.RLock()
 _resolved_root_cache: Optional[Path] = None
+_resolved_source_cache: Optional[str] = None
+_resolved_note_cache: Optional[str] = None
 
 
 def _is_frozen() -> bool:
@@ -168,75 +170,84 @@ def clear_userdata_pointer() -> None:
 
 
 def _reset_root_cache() -> None:
-    global _resolved_root_cache
+    global _resolved_root_cache, _resolved_source_cache, _resolved_note_cache
     with _resolve_lock:
         _resolved_root_cache = None
+        _resolved_source_cache = None
+        _resolved_note_cache = None
 
 
 def reset_user_data_root_cache() -> None:
-    """清除已解析的用户数据根缓存（更改指针/环境变量后调用，随后需重启应用）。"""
+    """清除已解析的用户数据根缓存（仅测试或重启进程时调用）。"""
     _reset_root_cache()
 
 
-def get_user_data_root() -> Path:
+def resolve_user_root(override: Optional[str | Path] = None) -> Tuple[Path, str, Optional[str]]:
     """
-    获取用户数据根（机器级、可迁移、可清理）。
+    解析用户数据根（机器级、可迁移、可清理）。
+
+    Args:
+        override: 显式目录（仅自动化测试使用）；传入后跳过指针与默认目录，也不读进程环境变量
 
     Returns:
-        Path: 用户数据根绝对路径（已确保可写）
-
-    解析优先级：
-        1. 环境变量 ``COMFYUI_BOX_USERDATA``（绝对路径）
-        2. 指针文件 ``%LOCALAPPDATA%\\Comfyui-Box\\userdata.location``
-        3. 默认 ``%LOCALAPPDATA%\\Comfyui-Box\\userdata``
-
-    若指针/环境变量指向的目录不可写（例如移动硬盘拔掉），降级到默认目录并记录告警；
-    不会静默覆盖指针文件。
+        (root, source, note)
+        source ∈ {"override", "pointer", "default", "fallback"}
+        note 为降级原因（指针失效或默认目录不可写），无降级时为 None
     """
-    global _resolved_root_cache
+    if override is not None:
+        target = Path(override).expanduser()
+        if not target.is_absolute():
+            raise ValueError("override 必须是绝对路径")
+        target = target.resolve()
+        if not _is_writable_dir(target):
+            raise ValueError(f"目录不可写: {target}")
+        return target, "override", None
+
+    global _resolved_root_cache, _resolved_source_cache, _resolved_note_cache
     with _resolve_lock:
         if _resolved_root_cache is not None:
-            return _resolved_root_cache
+            return _resolved_root_cache, _resolved_source_cache or "default", _resolved_note_cache
 
-        default_root = get_default_user_data_root()
-        candidates: List[Path] = []
-
-        env_value = os.environ.get(USERDATA_ENV_VAR, "").strip()
-        env_root: Optional[Path] = None
-        if env_value:
-            env_root = Path(env_value)
-            if env_root.is_absolute():
-                candidates.append(env_root)
+        note: Optional[str] = None
+        resolved: Optional[Tuple[Path, str, Optional[str]]] = None
 
         pointer_root = _read_pointer()
-        if pointer_root is not None and pointer_root not in candidates:
-            candidates.append(pointer_root)
+        if pointer_root is not None:
+            if _is_writable_dir(pointer_root):
+                resolved = (pointer_root.resolve(), "pointer", None)
+            else:
+                note = f"原数据目录不可用（不存在或不可写）：{pointer_root}"
 
-        candidates.append(default_root)
+        if resolved is None:
+            default_root = get_default_user_data_root()
+            if _is_writable_dir(default_root):
+                resolved = (default_root.resolve(), "default", note)
+            else:
+                default_note = f"默认目录不可写：{default_root}"
+                note = f"{note}；{default_note}" if note else default_note
+                fallback = Path(tempfile.gettempdir()) / APP_NAME / "userdata"
+                if _is_writable_dir(fallback):
+                    resolved = (fallback, "fallback", note)
+                else:
+                    raise RuntimeError(f"无法创建可写的用户数据目录: {default_root}")
 
-        for candidate in candidates:
-            if _is_writable_dir(candidate):
-                _resolved_root_cache = candidate.resolve()
-                return _resolved_root_cache
-
-        # 兜底：临时目录下建一个可写根，避免直接崩溃（理论上极少发生）
-        fallback = Path(tempfile.gettempdir()) / APP_NAME / "userdata"
-        fallback.mkdir(parents=True, exist_ok=True)
-        _resolved_root_cache = fallback
-        return _resolved_root_cache
+        _resolved_root_cache, _resolved_source_cache, _resolved_note_cache = resolved
+        return _resolved_root_cache, _resolved_source_cache, _resolved_note_cache
 
 
-def get_user_data_source() -> str:
-    """返回当前用户数据根的来源：env / pointer / default / fallback。"""
-    env_value = os.environ.get(USERDATA_ENV_VAR, "").strip()
-    if env_value and Path(env_value).is_absolute():
-        return "env"
-    pointer_root = _read_pointer()
-    if pointer_root is not None:
-        return "pointer" if pointer_root == get_user_data_root() else "pointer-invalid"
-    if get_user_data_root() == get_default_user_data_root():
-        return "default"
-    return "fallback"
+def get_user_data_root(override: Optional[str | Path] = None) -> Path:
+    """获取用户数据根绝对路径（已确保可写）；override 仅供测试注入。"""
+    return resolve_user_root(override)[0]
+
+
+def get_user_data_source(override: Optional[str | Path] = None) -> str:
+    """返回当前用户数据根的来源：override / pointer / default / fallback。"""
+    return resolve_user_root(override)[1]
+
+
+def get_user_data_resolution_note(override: Optional[str | Path] = None) -> Optional[str]:
+    """返回降级原因（指针失效或默认目录不可写）；正常时为 None。"""
+    return resolve_user_root(override)[2]
 
 
 def get_userdata_marker_file(root: Optional[Path] = None) -> Path:

@@ -24,12 +24,14 @@ from backend.src.utils import paths  # noqa: E402
 
 @pytest.fixture
 def user_root(monkeypatch, tmp_path):
-    root = tmp_path / "userdata"
-    monkeypatch.setenv(paths.USERDATA_ENV_VAR, str(root))
-    paths.reset_user_data_root_cache()
+    """测试注入：把当前进程的数据根固定到临时目录（不依赖环境变量）。"""
+    root = (tmp_path / "userdata").resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(paths, "get_user_data_root", lambda override=None: root)
+    monkeypatch.setattr(paths, "get_user_data_source", lambda override=None: "override")
+    monkeypatch.setattr(paths, "get_user_data_resolution_note", lambda override=None: None)
     monkeypatch.setattr(manager, "_PROCESS_START_ROOT", None)
     yield root
-    paths.reset_user_data_root_cache()
     manager._PROCESS_START_ROOT = None
 
 
@@ -126,6 +128,41 @@ def test_migrate_fails_when_encryption_key_missing(user_root):
     assert result["success"] is False
     assert "密钥" in result["error"]
     assert manager.collect_counts(user_root)["assets"] == 0
+
+
+def test_migration_to_new_root_writes_pointer(user_root, monkeypatch, tmp_path):
+    """迁移到新目录成功时必须写机器级指针，且当前进程不切换数据根。"""
+    source = _create_legacy_root(tmp_path / "legacy-install")
+    target = (tmp_path / "new-root").resolve()
+    pointer_file = tmp_path / "machine" / "userdata.location"
+    monkeypatch.setattr(paths, "get_userdata_pointer_file", lambda: pointer_file)
+
+    started = manager.start_migration(str(source), str(target))
+    assert started["success"] is True
+    for _ in range(100):
+        state = manager.get_migration_status()
+        if not state["running"]:
+            break
+        __import__("time").sleep(0.05)
+
+    result = state["result"]
+    assert result["success"] is True
+    assert result["restart_required"] is True
+    assert pointer_file.read_text(encoding="utf-8") == str(target)
+    # 当前进程仍使用旧根，等待重启
+    assert paths.get_user_data_root() == user_root
+    assert manager.collect_counts(target)["assets"] == 3
+
+
+def test_inspect_root_reports_existing_business_data(user_root):
+    (user_root / "data" / "gallery").mkdir(parents=True, exist_ok=True)
+    (user_root / "data" / "gallery" / "assets.json").write_text(
+        '{"assets": [{"id": "a"}], "categories": [{"id": "c"}]}', encoding="utf-8"
+    )
+    info = manager.inspect_user_data_root(str(user_root))
+    assert info["success"] is True
+    assert info["has_business"] is True
+    assert info["counts"]["assets"] == 1
 
 
 def test_clean_cache_and_logs(user_root):
